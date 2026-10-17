@@ -26,6 +26,7 @@ export function App() {
             <Route index element={<DashboardPage />} />
             <Route path="farm-care" element={<FarmCarePage />} />
             <Route path="disease-scanner" element={<DiseaseScannerPage />} />
+            <Route path="crop-doctor" element={<DiseaseScannerPage />} />
             <Route path="intelligence" element={<IntelligencePage />} />
             <Route path="weather" element={<WeatherPage />} />
             <Route path="khet-score" element={<KhetScorePage />} />
