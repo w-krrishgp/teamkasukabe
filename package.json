@@ -16,7 +16,11 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.5.3",
+    "@capacitor/app": "^8.1.2",
+    "@capacitor/camera": "^8.2.6",
     "@capacitor/core": "^8.5.3",
+    "@capacitor/geolocation": "^8.2.4",
+    "@capacitor/status-bar": "^8.0.4",
     "@supabase/supabase-js": "^2.118.0",
     "lucide-react": "^1.59.0",
     "react": "^19.2.8",

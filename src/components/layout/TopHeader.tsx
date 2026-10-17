@@ -7,9 +7,11 @@ import {
   ChevronDown,
   Check,
   X,
+  Compass,
 } from 'lucide-react';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useLanguage } from '@/context/LanguageContext';
+import { getFarmLocation } from '@/services/deviceService';
 
 export const TopHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ export const TopHeader: React.FC = () => {
   const { language, setLanguage, t } = useLanguage();
 
   const [isFarmModalOpen, setIsFarmModalOpen] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [selectedFarm, setSelectedFarm] = useState({
     name: 'Kheda Farm #1, Mehsana',
     area: '5.5 Acres',
@@ -24,6 +27,21 @@ export const TopHeader: React.FC = () => {
   });
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+
+  const handleUseGps = async () => {
+    setIsLocating(true);
+    try {
+      const coords = await getFarmLocation();
+      setSelectedFarm({
+        name: coords.locality,
+        area: '5.5 Acres (GPS Locked)',
+        crops: 'Wheat HD-2967, Mustard',
+      });
+      setIsFarmModalOpen(false);
+    } finally {
+      setIsLocating(false);
+    }
+  };
 
   const farms = [
     {
@@ -153,6 +171,30 @@ export const TopHeader: React.FC = () => {
             </div>
 
             <div className="space-y-2">
+              <button
+                type="button"
+                onClick={handleUseGps}
+                disabled={isLocating}
+                className="w-full p-3 rounded-2xl border border-emerald-300 bg-emerald-50/70 hover:bg-emerald-100/60 active:scale-[0.99] transition-all flex items-center justify-between text-left text-xs font-bold text-emerald-950"
+              >
+                <div className="flex items-center space-x-2.5">
+                  <div className="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                    <Compass className={`w-4 h-4 ${isLocating ? 'animate-spin' : ''}`} />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold">
+                      {language === 'hi' ? 'लाइव GPS स्थान उपयोग करें' : 'Locate Farm via GPS'}
+                    </p>
+                    <p className="text-[10px] text-emerald-800 font-normal">
+                      {language === 'hi' ? 'कैपेसिटर जिओलोकेशन व उपग्रह' : 'Capacitor Geolocation with Fallback'}
+                    </p>
+                  </div>
+                </div>
+                <span className="text-[10px] bg-emerald-200 text-emerald-900 px-2 py-0.5 rounded-full font-extrabold">
+                  {isLocating ? 'Locating...' : 'GPS Fix'}
+                </span>
+              </button>
+
               {farms.map((f) => (
                 <div
                   key={f.id}

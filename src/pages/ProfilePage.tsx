@@ -24,6 +24,8 @@ import {
 import { MOCK_FARMER_PROFILE, isSupabaseLive } from '@/services/supabase';
 import { env } from '@/config/env';
 import { useLanguage, type Language } from '@/context/LanguageContext';
+import { NETWORK_CAPABILITIES } from '@/services/deviceService';
+import { Wifi, WifiOff, CheckCircle2 } from 'lucide-react';
 
 export const ProfilePage = () => {
   const { language, setLanguage } = useLanguage();
@@ -218,6 +220,57 @@ export const ProfilePage = () => {
             >
               Sync
             </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Rural Network Capability Matrix */}
+      <Card variant="default" className="shadow-sm border-stone-200">
+        <CardHeader className="pb-1">
+          <CardTitle className="text-xs font-bold uppercase tracking-wider text-stone-600 flex items-center space-x-1.5">
+            <Wifi className="w-3.5 h-3.5 text-harvest-primary" />
+            <span>
+              {language === 'hi' ? 'ऑफलाइन व ऑनलाइन कार्यक्षमता' : 'Rural Network Operation Matrix'}
+            </span>
+          </CardTitle>
+          <CardDescription className="text-xs">
+            {language === 'hi'
+              ? 'खेत में नेटवर्क न होने पर कौन सी सुविधाएं काम करेंगी'
+              : 'Clear breakdown of zero-connectivity features versus live cloud sync.'}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="space-y-3 pt-2 text-xs">
+          {/* Offline Ready Features */}
+          <div className="p-3 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-2">
+            <div className="flex items-center space-x-2 text-emerald-900 font-bold">
+              <WifiOff className="w-4 h-4 text-emerald-700" />
+              <span>{language === 'hi' ? 'ऑफलाइन में उपलब्ध (इंटरनेट जरूरी नहीं)' : 'Works Completely Offline (Zero Network)'}</span>
+            </div>
+            <ul className="space-y-1.5">
+              {NETWORK_CAPABILITIES.offlineAvailable.map((item, idx) => (
+                <li key={idx} className="flex items-start space-x-2 text-[11px] text-emerald-950">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Online Required Features */}
+          <div className="p-3 rounded-2xl bg-sky-50/60 border border-sky-200 space-y-2">
+            <div className="flex items-center space-x-2 text-sky-900 font-bold">
+              <Wifi className="w-4 h-4 text-sky-700" />
+              <span>{language === 'hi' ? 'इंटरनेट आवश्यक (लाइव डेटा स्ट्रीमिंग)' : 'Requires Active Internet (Live Sync)'}</span>
+            </div>
+            <ul className="space-y-1.5">
+              {NETWORK_CAPABILITIES.onlineRequired.map((item, idx) => (
+                <li key={idx} className="flex items-start space-x-2 text-[11px] text-sky-950">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500 shrink-0 mt-1.5" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </CardContent>
       </Card>

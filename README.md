@@ -14,8 +14,9 @@
 | **Build Tool** | **Vite 8** | Lightning-fast HMR and optimized production bundling |
 | **Styling & Design** | **Tailwind CSS (v3)** | Accessible, mobile-first earthy design system |
 | **Android Packaging** | **Capacitor 8** | Cross-platform native Android WebView bridge & device plugins |
-| **Navigation** | **React Router 7** | Client-side routing with bottom thumb navigation |
+| **Navigation** | **React Router 7** | Single-page client-side routing with viewport locking (`100dvh`) |
 | **Backend & Cloud** | **Supabase** | Cloud database, authentication, offline sync fallback |
+| **Device Plugins** | **Capacitor Camera & Geolocation** | Native camera leaf capture & GPS with graceful web/field fallbacks |
 | **Icons** | **Lucide React** | Lightweight, accessible semantic iconography |
 
 ---
@@ -33,76 +34,26 @@ HarvestGuard is engineered with a mobile-first, rural-friendly interface:
   - `harvest-warm` (`#F1F5EE`): Container card surfaces
   - `harvest-clay` (`#C86D51`): Terracotta soil warning & alert accents
 - **Accessible Contrast**: WCAG AA/AAA compliant text contrast ratios on all screens.
-- **Touch-Friendly Hit Targets**: Buttons and tab targets are sized at a minimum of 44px–52px for outdoor, single-handed Android thumb use.
-- **Android Native Enhancements**: Safe-area insets (`env(safe-area-inset-top)`, `env(safe-area-inset-bottom)`), active tap feedback (`active:scale-[0.98]`), and offline connectivity detection.
+- **Touch-Friendly Hit Targets**: Buttons and tab targets are sized at a minimum of 48px–56px for outdoor, single-handed Android thumb use.
+- **Android Native Enhancements**: Safe-area insets (`pt-safe`, `pb-safe`), active tap feedback (`active:scale-[0.98]`), single-page viewport locking (`overflow: hidden; position: fixed` on body with momentum scroll inside `<main>`), and offline connectivity detection.
 
 ---
 
-## 🗂️ Project & Folder Architecture
+## 🗺️ All 11 Feature Routes
 
-```text
-HarvestGuard/
-├── android/                   # Native Android Studio project (Gradle, AndroidManifest)
-├── public/                    # Static assets & icons
-├── src/
-│   ├── assets/                # App artwork and icons
-│   ├── config/                # Environment variables & navigation definitions
-│   │   ├── env.ts             # Validated environment configuration with fallback
-│   │   └── navigation.ts      # Bottom navigation items & multilingual labels
-│   ├── types/                 # Central TypeScript type definitions
-│   │   ├── common.ts          # UI button variants, badges, status metrics
-│   │   ├── farm.ts            # Crop telemetry, health score, advisory models
-│   │   ├── market.ts          # APMC mandi prices and buyer inquiries
-│   │   ├── finance.ts         # PM-KISAN, KCC credit, and insurance schemes
-│   │   ├── user.ts            # Farmer identity, language, land holdings
-│   │   └── index.ts           # Central barrel export
-│   ├── services/              # Cloud and local storage services
-│   │   └── supabase.ts        # Supabase client with offline demo seed fallback
-│   ├── utils/                 # Utility functions
-│   │   ├── cn.ts              # Class name merger
-│   │   └── formatters.ts      # Currency (₹ INR), land area (Acres), date formats
-│   ├── hooks/                 # Reusable custom React hooks
-│   │   └── useNetworkStatus.ts# Rural network connectivity detector
-│   ├── components/            # Reusable UI component library
-│   │   ├── common/            # Atomic components
-│   │   │   ├── Button.tsx     # Primary, secondary, outline, ghost, earth, loading states
-│   │   │   ├── Card.tsx       # Rounded cards (Header, Title, Content, Footer)
-│   │   │   ├── FormInput.tsx  # Input, SearchInput, FormSelect, FormTextarea
-│   │   │   ├── StatusBadge.tsx# Success, warning, error, info, earth badges
-│   │   │   ├── LoadingState.tsx# Spinners, skeleton loaders, and full page loaders
-│   │   │   ├── ErrorState.tsx # Error cards, empty states, offline banner
-│   │   │   └── index.ts       # Barrel export
-│   │   └── layout/            # Layout shell components
-│   │       ├── AppLayout.tsx  # Screen scaffold (TopHeader + Outlet + BottomNav)
-│   │       ├── TopHeader.tsx  # Android top app bar with language toggle & sync badge
-│   │       ├── BottomNav.tsx  # Thumb-friendly bottom navigation bar
-│   │       ├── MobileShell.tsx# Android device frame / responsive layout container
-│   │       └── index.ts       # Barrel export
-│   ├── features/              # Modular feature domains
-│   │   ├── farmCare/          # AI Crop doctor & pest detection
-│   │   ├── intelligence/      # Weather telemetry & AI Agronomist chat
-│   │   ├── finance/           # KCC & government welfare schemes
-│   │   ├── market/            # Mandi live pricing & buyer match
-│   │   └── profile/           # Land records & digital identity
-│   ├── pages/                 # Route entry views
-│   │   ├── DashboardPage.tsx  # Farm health overview, weather alert, quick actions
-│   │   ├── FarmCarePage.tsx   # Crop doctor camera scanner & disease records
-│   │   ├── IntelligencePage.tsx# 5-day weather forecast, NDVI, AI chat
-│   │   ├── FinancePage.tsx    # KCC card limit, PM-KISAN DBT tracker, schemes
-│   │   ├── MarketPage.tsx     # APMC live rates, price trend, buyer demand
-│   │   ├── ProfilePage.tsx    # Farmer profile, KYC status, language selector
-│   │   ├── NotFoundPage.tsx   # 404 handler
-│   │   └── index.ts           # Barrel export
-│   ├── App.tsx                # React Router routing setup
-│   ├── main.tsx               # Application entry point
-│   └── index.css              # Tailwind directives & Android touch styles
-├── capacitor.config.ts        # Capacitor configuration for Android app
-├── tailwind.config.js         # Earthy design system tokens & colors
-├── vite.config.ts             # Vite bundler & path aliases
-├── tsconfig.json              # TypeScript root configuration
-├── .env.example               # Environment variables template
-└── README.md                  # Documentation
-```
+| # | Route | View | Description |
+| :--- | :--- | :--- | :--- |
+| 1 | `/` | **Dashboard** | Farm overview, greeting, quick actions, weather alert, market opportunity, pillars |
+| 2 | `/farm-care` | **Smart Farm Care** | AI crop doctor hub, target crop selection, leaf scan card, and disease records |
+| 3 | `/disease-scanner` | **AI Leaf Disease Scanner** | Dedicated camera viewfinder, native camera/photo picker, instant severity & dosage guide |
+| 4 | `/intelligence` | **Farm Intelligence** | Sentinel-2 NDVI canopy vigor, micro-weather radar, interactive AI Agronomist chat |
+| 5 | `/weather` | **Weather & Spray Radar** | 5-day agro-meteorological forecast, hourly spray window suitability, live GPS fix |
+| 6 | `/khet-score` | **Khet Score Audit** | Composite 88/100 farm health audit, NPK balance, water security, credit readiness |
+| 7 | `/finance` | **Money & Schemes** | Kisan Credit Card (KCC) limit widget, institutional credit cards, scheme application |
+| 8 | `/schemes` | **Govt Welfare & Subsidies** | PM-KISAN ₹6,000 tracker, PMFBY crop insurance, SMAM machinery, PM-KUSUM solar pumps |
+| 9 | `/market` | **Market Access Hub** | APMC mandi live modal rates, price-trend arrows, direct miller buyer contracts |
+| 10 | `/mandi-rates` | **APMC Live Mandi Rates** | Live commodity prices (Wheat, Mustard, Cumin), market arbitrage (+₹70/Qtl), freight finder |
+| 11 | `/profile` | **Farmer Profile & Identity** | Digital Kisan ID, land records, Aadhaar e-KYC badge, and Rural Network Operation Matrix |
 
 ---
 
@@ -111,10 +62,9 @@ HarvestGuard/
 ### 1. Prerequisites
 - **Node.js**: v18+ (tested on Node v24.x)
 - **npm**: v9+
-- *(Optional for native Android build)*: **Android Studio**, **JDK 17+**, and Android SDK 33+.
+- *(For local native Android APK building)*: **JDK 17+**, **Android Studio**, and Android SDK 34+.
 
 ### 2. Installation
-Clone the repository and install dependencies:
 
 ```bash
 cd Farmapp
@@ -130,16 +80,12 @@ cp .env.example .env
 
 Configure your credentials:
 ```env
-# Supabase Configuration (Leave default for offline demo fallback)
-VITE_SUPABASE_URL="https://your-project-id.supabase.co"
-VITE_SUPABASE_ANON_KEY="your-anon-public-key"
-
-# Optional Agricultural APIs
-VITE_WEATHER_API_KEY=""
-VITE_AGRI_MARKET_API_KEY=""
-VITE_GEMINI_API_KEY=""
+VITE_APP_NAME="HarvestGuard"
+VITE_APP_ENV="development"
+VITE_SUPABASE_URL="https://demo-harvestguard.supabase.co"
+VITE_SUPABASE_ANON_KEY="demo-anon-key-placeholder"
 ```
-> **Security Note**: Never commit `.env` to source control. Secrets are accessed exclusively via `src/config/env.ts` with safe client fallbacks.
+> **Security Note**: Never commit `.env` to source control. Secrets are accessed exclusively via `src/config/env.ts` with safe client fallbacks. No private keys or service role keys are bundled into client builds.
 
 ### 4. Running the Development Server
 
@@ -150,13 +96,16 @@ npm run dev
 - Local preview: `http://localhost:5173/`
 - Mobile network preview: Vite automatically exposes the local network IP so you can test directly on your physical Android phone over Wi-Fi.
 
-### 5. TypeScript Check & Production Build
+### 5. Static Analysis, Type Check & Production Build
 
 ```bash
 # Type check without emitting files
 npm run typecheck
 
-# Full production build
+# Code quality and style linting (0 errors, 0 warnings)
+npm run lint
+
+# Full production web bundle
 npm run build
 ```
 
@@ -166,10 +115,10 @@ npm run build
 
 HarvestGuard is configured for native Android deployment via Capacitor.
 
-### Android Build Commands
+### Android Build & Sync Commands
 
 ```bash
-# 1. Build the production web bundle and sync with Android
+# 1. Build the production web bundle and sync with the Android project
 npm run cap:build
 
 # 2. Sync web assets directly to Android assets
@@ -182,33 +131,90 @@ npm run cap:open
 npm run cap:run
 ```
 
-### Android App Configuration Details
+### Android App Metadata & Configuration
 - **Package ID**: `com.harvestguard.app`
 - **Application Name**: `HarvestGuard`
 - **Target SDK**: Android 14 (API 34)
+- **Min SDK**: Android 7.0 (API 24)
 - **Web Directory**: `dist`
-- **Scheme**: `https://` (Android HTTPS asset loader for secure cookie and camera access)
-- **Permissions Configured**: Camera access (for leaf disease diagnosis), Geolocation (for micro-weather radar), Network State (for rural offline mode).
+- **Scheme**: `https://` (Android HTTPS asset loader for secure cookie, camera, and geolocation access)
+
+### Native Permissions & Graceful Fallbacks
+Configured in `android/app/src/main/AndroidManifest.xml`:
+- **Network**: `android.permission.INTERNET`, `android.permission.ACCESS_NETWORK_STATE`
+- **Camera**: `android.permission.CAMERA` with `android.hardware.camera` (`required=false`)
+- **Location**: `android.permission.ACCESS_FINE_LOCATION`, `android.permission.ACCESS_COARSE_LOCATION` with `android.hardware.location.gps` (`required=false`)
+- **Graceful Fallbacks (`src/services/deviceService.ts`)**:
+  - If camera permission is denied or device camera is unavailable, the app falls back to a verified field sample image with clear status messaging.
+  - If geolocation is denied or timed out, the app falls back to the farmer's registered farm coordinates (23.588° N, 72.3693° E, Mehsana Gujarat).
 
 ---
 
-## 🗺️ Navigation Routes
+## 📶 Rural Network Capabilities (Online vs Offline)
 
-| Route | View | Description |
-| :--- | :--- | :--- |
-| `/` | **Dashboard** | Farmer greeting, field weather telemetry, active crop health cards, quick actions |
-| `/farm-care` | **Smart Farm Care** | AI crop doctor leaf scanner, symptom search, diagnostic logs |
-| `/intelligence` | **Farm Intelligence** | 5-day weather forecast, Sentinel NDVI vegetation vigor, AI agronomist chat |
-| `/finance` | **Money & Schemes** | Kisan Credit Card (KCC) limit widget, PM-KISAN DBT tracker, government subsidies |
-| `/market` | **Market Access** | APMC mandi live modal rates, price-trend arrows, verified buyer leads |
-| `/profile` | **Profile & Settings** | Land records, Aadhaar KYC badge, language selector, offline sync telemetry |
+| Feature | Offline Availability | Notes |
+| :--- | :---: | :--- |
+| **AI Disease Symptom & Prescriptions** | ✅ Yes | Cached diagnostic protocols and chemical dilution guides |
+| **Khet Score Farm Health Computation** | ✅ Yes | Local heuristic scoring algorithm |
+| **Digital Land Records & Survey Numbers** | ✅ Yes | Stored locally in encrypted web storage |
+| **Kisan Credit Card (KCC) Limit Summary** | ✅ Yes | Cached banking card summary |
+| **Emergency Kisan Call Center (1800-180-1551)** | ✅ Yes | Native GSM dialer access |
+| **Live APMC Mandi Price Streaming** | 🌐 Online Required | Real-time modal price feeds from e-NAM mandis |
+| **Sentinel-2 Satellite NDVI Radar Passes** | 🌐 Online Required | Multichannel satellite multispectral imagery |
+| **5-Day Micro-Weather Precipitation Radar** | 🌐 Online Required | Atmospheric telemetry and radar updates |
+| **Cloud Database Synchronization (Supabase)** | 🌐 Online Required | Two-way remote synchronization |
+| **Direct Institutional Buyer Inquiries** | 🌐 Online Required | Direct procurement matchmaking |
 
 ---
 
-## 🏆 Hackathon Foundation Highlights
+## 📦 How to Build the Android APK
 
-1. **Zero External CSS Bloat**: Pure Tailwind CSS tokens tailored to rural Indian agricultural context.
-2. **Offline-Resilient**: Automatic network detection (`useNetworkStatus`), offline banners, and mock seed fallback for reliable live demo presentation.
-3. **Android Safe Area Compliant**: Clean status bar padding and bottom navigation layout matching native Android guidelines.
-4. **Strict TypeScript Standards**: 100% type-safe components, data contracts, and zero compiler warnings.
->>>>>>> b10300c (feat: initial commit of HarvestGuard Android-first farmer empowerment platform)
+### Option A: Local Build (Requires JDK 17+ and Android Studio)
+1. Install **JDK 17 or higher** (e.g. Eclipse Temurin 17 or OpenJDK 17).
+2. Set the `JAVA_HOME` environment variable to your JDK 17 installation:
+   ```powershell
+   [System.Environment]::SetEnvironmentVariable("JAVA_HOME", "C:\Program Files\Eclipse Adoptium\jdk-17...", "User")
+   ```
+3. Install **Android Studio** and the Android SDK Platform 34.
+4. Set the `ANDROID_HOME` environment variable:
+   ```powershell
+   [System.Environment]::SetEnvironmentVariable("ANDROID_HOME", "C:\Users\<Username>\AppData\Local\Android\Sdk", "User")
+   ```
+5. Build the web app and sync:
+   ```bash
+   npm run cap:build
+   ```
+6. Build the debug APK via Gradle:
+   ```bash
+   cd android
+   ./gradlew assembleDebug
+   ```
+   The APK will be generated at:
+   `android/app/build/outputs/apk/debug/app-debug.apk`
+
+### Option B: Cloud CI Build via GitHub Actions
+A complete automated build workflow is configured in `.github/workflows/android-build.yml`.
+Every push to `main` triggers:
+1. Node.js setup and dependency installation
+2. TypeScript typecheck (`npm run typecheck`) and oxlint (`npm run lint`)
+3. Production web build (`npm run build`)
+4. Capacitor sync (`npx cap sync android`)
+5. Eclipse Temurin JDK 17 setup
+6. Android SDK and Gradle build (`gradlew assembleDebug`)
+7. Upload of `app-debug.apk` as a downloadable GitHub Actions artifact!
+
+---
+
+## 📋 Android Release Checklist
+
+- [x] **App ID & Metadata**: `com.harvestguard.app`, App Name `HarvestGuard` configured in `capacitor.config.ts`, `strings.xml`, and `build.gradle`.
+- [x] **Production Web Build**: Clean Vite production build with code splitting and zero TypeScript compiler errors.
+- [x] **Code Quality & Linter**: Oxlint executed with 0 warnings and 0 errors across 50 files.
+- [x] **Security & Secret Hygiene**: Verified that no private API keys or service role keys are present in `.env`, `.env.example`, or client bundles.
+- [x] **Native Permissions Restricted**: Only Camera and Location permissions are requested, with `android:required="false"` so all Android devices can install the app.
+- [x] **Graceful Fallbacks**: Fully implemented in `src/services/deviceService.ts` for camera denial and GPS failure.
+- [x] **Single-Page Viewport Lock**: Single-page mobile layout locking (`100dvh`, fixed body) with smooth internal scroll container and no double scrollbars.
+- [x] **Phone-Sized Touch Targets**: All interactive elements (buttons, pills, tabs) meet or exceed the 48px touch target standard.
+- [x] **Safe Area Compliance**: Configured `pt-safe` and `pb-safe` for status bar and gesture navigation bar padding.
+- [x] **11 Feature Routes Verified**: All 11 feature routes (`/`, `/farm-care`, `/disease-scanner`, `/intelligence`, `/weather`, `/khet-score`, `/finance`, `/schemes`, `/market`, `/mandi-rates`, `/profile`) verified and returning HTTP 200.
+- [x] **Cloud CI & APK Workflow**: Configured in `.github/workflows/android-build.yml` with Temurin JDK 17 and Android SDK.

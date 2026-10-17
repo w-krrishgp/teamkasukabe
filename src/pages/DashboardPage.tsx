@@ -135,7 +135,7 @@ export const DashboardPage: React.FC = () => {
         <div className="grid grid-cols-2 gap-2.5">
           {/* Action 1: Scan Leaf */}
           <button
-            onClick={() => navigate('/farm-care')}
+            onClick={() => navigate('/disease-scanner')}
             className="flex items-center space-x-3 p-3 bg-white border border-stone-200 rounded-2xl shadow-xs text-left hover:border-harvest-primary active:scale-[0.98] transition-all group min-h-[64px]"
           >
             <div className="w-11 h-11 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -149,7 +149,7 @@ export const DashboardPage: React.FC = () => {
 
           {/* Action 2: Check Weather */}
           <button
-            onClick={() => navigate('/intelligence')}
+            onClick={() => navigate('/weather')}
             className="flex items-center space-x-3 p-3 bg-white border border-stone-200 rounded-2xl shadow-xs text-left hover:border-harvest-primary active:scale-[0.98] transition-all group min-h-[64px]"
           >
             <div className="w-11 h-11 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -163,7 +163,7 @@ export const DashboardPage: React.FC = () => {
 
           {/* Action 3: Check Market Prices */}
           <button
-            onClick={() => navigate('/market')}
+            onClick={() => navigate('/mandi-rates')}
             className="flex items-center space-x-3 p-3 bg-white border border-stone-200 rounded-2xl shadow-xs text-left hover:border-harvest-primary active:scale-[0.98] transition-all group min-h-[64px]"
           >
             <div className="w-11 h-11 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -177,7 +177,7 @@ export const DashboardPage: React.FC = () => {
 
           {/* Action 4: Khet Score */}
           <button
-            onClick={() => setIsKhetScoreOpen(true)}
+            onClick={() => navigate('/khet-score')}
             className="flex items-center space-x-3 p-3 bg-white border border-stone-200 rounded-2xl shadow-xs text-left hover:border-harvest-primary active:scale-[0.98] transition-all group min-h-[64px]"
           >
             <div className="w-11 h-11 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -247,7 +247,7 @@ export const DashboardPage: React.FC = () => {
               {t('diseaseAlertText')}
             </p>
             <button
-              onClick={() => navigate('/farm-care')}
+              onClick={() => navigate('/disease-scanner')}
               className="text-xs font-bold text-amber-950 underline hover:text-black inline-flex items-center space-x-1 pt-1"
             >
               <span>{t('diseaseAlertAction')}</span>
@@ -293,7 +293,7 @@ export const DashboardPage: React.FC = () => {
               {t('marketOppAction')}
             </Button>
             <button
-              onClick={() => navigate('/market')}
+              onClick={() => navigate('/mandi-rates')}
               className="text-xs text-emerald-300 hover:text-white font-semibold underline"
             >
               All Mandi Rates →

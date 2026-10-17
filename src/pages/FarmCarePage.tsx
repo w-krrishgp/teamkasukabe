@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Camera,
   ShieldCheck,
   CheckCircle2,
   Sparkles,
   Info,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   Button,
@@ -21,12 +23,15 @@ import {
 } from '@/components/common';
 import { MOCK_CROPS } from '@/services/supabase';
 import { useLanguage } from '@/context/LanguageContext';
+import { captureLeafPhoto, PhotoCaptureResult } from '@/services/deviceService';
 
 export const FarmCarePage = () => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCrop, setSelectedCrop] = useState(MOCK_CROPS[0].id);
   const [isScanning, setIsScanning] = useState(false);
+  const [capturedPhoto, setCapturedPhoto] = useState<PhotoCaptureResult | null>(null);
   const [scanResult, setScanResult] = useState<{
     disease: string;
     severity: 'Mild' | 'Moderate' | 'Critical';
@@ -72,19 +77,25 @@ export const FarmCarePage = () => {
       d.symptoms.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleSimulateScan = () => {
+  const handleSimulateScan = async () => {
     setIsScanning(true);
     setScanResult(null);
-    setTimeout(() => {
+    try {
+      const photo = await captureLeafPhoto();
+      setCapturedPhoto(photo);
+      setTimeout(() => {
+        setIsScanning(false);
+        setScanResult({
+          disease: 'Yellow Rust (Puccinia striiformis)',
+          severity: 'Moderate',
+          treatment: 'Foliar fungicide spray recommended within 48 hours to prevent spread to tillers.',
+          dosage: 'Propiconazole 25% EC @ 1 ml/L or Tebuconazole 25.9% EC @ 1.25 ml/L',
+          confidence: 96.4,
+        });
+      }, 900);
+    } catch {
       setIsScanning(false);
-      setScanResult({
-        disease: 'Yellow Rust (Puccinia striiformis)',
-        severity: 'Mild',
-        treatment: 'Foliar fungicide spray recommended within 48 hours to prevent spread to tillers.',
-        dosage: 'Propiconazole 25% EC @ 1 ml/L or Tebuconazole 25.9% EC @ 1.25 ml/L',
-        confidence: 96.4,
-      });
-    }, 1100);
+    }
   };
 
   return (
@@ -151,11 +162,24 @@ export const FarmCarePage = () => {
 
           <div
             onClick={handleSimulateScan}
-            className="border-2 border-dashed border-stone-300 rounded-2xl p-5 text-center bg-[#F8FAF6] hover:bg-emerald-50/40 transition-all cursor-pointer flex flex-col items-center justify-center space-y-2 group active:scale-[0.99]"
+            className="border-2 border-dashed border-stone-300 rounded-2xl p-4 text-center bg-[#F8FAF6] hover:bg-emerald-50/40 transition-all cursor-pointer flex flex-col items-center justify-center space-y-2 group active:scale-[0.99]"
           >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
-              <Camera className="w-6 h-6" />
-            </div>
+            {capturedPhoto?.imageUrl ? (
+              <div className="relative w-full aspect-video max-h-48 rounded-xl overflow-hidden border border-stone-300">
+                <img
+                  src={capturedPhoto.imageUrl}
+                  alt="Captured leaf"
+                  className="w-full h-full object-cover"
+                />
+                <span className="absolute bottom-2 right-2 px-2 py-0.5 rounded-md bg-black/70 text-white text-[10px] font-bold">
+                  {capturedPhoto.source}
+                </span>
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center group-hover:scale-110 transition-transform shadow-xs">
+                <Camera className="w-6 h-6" />
+              </div>
+            )}
             <div>
               <p className="text-xs font-bold text-harvest-deep">
                 {isScanning
@@ -163,10 +187,19 @@ export const FarmCarePage = () => {
                   : (language === 'hi' ? 'पत्ते की फोटो खींचें या गैलरी से चुनें' : 'Tap to Launch Camera or Upload Leaf Photo')}
               </p>
               <p className="text-[11px] text-stone-500 mt-0.5">
-                {language === 'hi' ? 'ऑटो-फोकस और धूप में स्पष्ट जांच' : 'High-contrast mobile inspection'}
+                {language === 'hi' ? 'कैमरा अनुमति अस्वीकार होने पर सुरक्षित नमूना लोड होगा' : 'Device camera permission check with graceful fallback'}
               </p>
             </div>
           </div>
+
+          <Button
+            variant="outline"
+            className="w-full h-10 text-xs font-bold flex items-center justify-center space-x-1.5 border-harvest-primary text-harvest-primary hover:bg-emerald-50"
+            onClick={() => navigate('/disease-scanner')}
+          >
+            <span>{language === 'hi' ? 'फुलस्क्रीन AI स्कैनर खोलें' : 'Open Fullscreen AI Scanner'}</span>
+            <ArrowUpRight className="w-3.5 h-3.5 ml-0.5" />
+          </Button>
 
           {scanResult && (
             <div className="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-xs space-y-2 animate-fadeIn text-emerald-950">
