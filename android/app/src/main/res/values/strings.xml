@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HarvestGuard</string>
+    <string name="title_activity_main">HarvestGuard</string>
+    <string name="package_name">com.harvestguard.app</string>
+    <string name="custom_url_scheme">com.harvestguard.app</string>
+</resources>

@@ -1,0 +1,76 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --harvest-bg: #F8FAF6;
+    --harvest-surface: #FFFFFF;
+    --harvest-text: #132A13;
+    --harvest-primary: #2D6A4F;
+    --harvest-border: #E2E8DF;
+  }
+
+  * {
+    -webkit-tap-highlight-color: transparent;
+    box-sizing: border-box;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    position: fixed;
+    background-color: var(--harvest-bg);
+    color: var(--harvest-text);
+    font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    touch-action: pan-y;
+  }
+
+  #root {
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    max-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: var(--harvest-bg);
+  }
+}
+
+@layer utilities {
+  /* Android safe area helpers */
+  .pt-safe {
+    padding-top: max(env(safe-area-inset-top), 10px);
+  }
+  .pb-safe {
+    padding-bottom: max(env(safe-area-inset-bottom), 12px);
+  }
+  .h-safe-screen {
+    height: 100dvh;
+  }
+  
+  /* Android-native tap feedback */
+  .active-press {
+    transition: transform 0.12s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.12s ease;
+  }
+  .active-press:active {
+    transform: scale(0.97);
+    opacity: 0.9;
+  }
+
+  /* Custom subtle scrollbar */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
