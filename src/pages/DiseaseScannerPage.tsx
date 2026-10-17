@@ -19,6 +19,10 @@ import {
   ShieldCheck,
   FlaskConical,
   XCircle,
+  Key,
+  Eye,
+  EyeOff,
+  RefreshCw,
 } from 'lucide-react';
 import {
   Button,
@@ -37,7 +41,7 @@ import {
   ImageValidationResult,
   InferenceMode,
 } from '@/services/cropDoctor';
-import { env, isConfigured } from '@/config/env';
+import { env, isConfigured, saveCustomGeminiApiKey } from '@/config/env';
 import { useLanguage } from '@/context/LanguageContext';
 
 export const DiseaseScannerPage: React.FC = () => {
@@ -63,6 +67,44 @@ export const DiseaseScannerPage: React.FC = () => {
   // Testing & Inference Mode Controls
   const [testMode, setTestMode] = useState<'auto' | 'demo' | 'simulate_failure'>('auto');
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
+
+  // In-app API Key Management
+  const [showKeyConfig, setShowKeyConfig] = useState(false);
+  const [customKeyInput, setCustomKeyInput] = useState(env.geminiApiKey || '');
+  const [showRawKey, setShowRawKey] = useState(false);
+  const [isTestingKey, setIsTestingKey] = useState(false);
+  const [keyTestStatus, setKeyTestStatus] = useState<{ success: boolean; message: string } | null>(null);
+  const [keySavedMessage, setKeySavedMessage] = useState<string | null>(null);
+
+  const handleSaveApiKey = () => {
+    saveCustomGeminiApiKey(customKeyInput);
+    setKeySavedMessage(language === 'hi' ? 'कुंजी सफलतापूर्वक सहेजी गई!' : 'API Key saved successfully!');
+    setTimeout(() => setKeySavedMessage(null), 3000);
+  };
+
+  const handleTestLiveKey = async () => {
+    setIsTestingKey(true);
+    setKeyTestStatus(null);
+    try {
+      const keyToTest = customKeyInput.trim() || env.geminiApiKey;
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${keyToTest}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'ping' }] }] }),
+      });
+      if (res.ok) {
+        setKeyTestStatus({ success: true, message: language === 'hi' ? '✓ कुंजी मान्य है और Gemini API से जुड़ी है!' : '✓ Key is valid and connected to Gemini API!' });
+      } else {
+        const err = await res.text();
+        setKeyTestStatus({ success: false, message: `Error ${res.status}: ${err.slice(0, 80)}` });
+      }
+    } catch (e: unknown) {
+      const err = e instanceof Error ? e.message : 'Network error';
+      setKeyTestStatus({ success: false, message: `Connection failed: ${err}` });
+    } finally {
+      setIsTestingKey(false);
+    }
+  };
 
   // Multi-stage analysis text
   const stages = [
@@ -158,7 +200,7 @@ export const DiseaseScannerPage: React.FC = () => {
       setIsCapturing(false);
 
       if (result.imageUrl) {
-        await executeAnalysis('camera', result.imageUrl, undefined, 'wheat');
+        await executeAnalysis('camera', result.imageUrl, undefined, selectedCropHint === 'auto' ? undefined : selectedCropHint);
       }
     } catch {
       setIsCapturing(false);
@@ -307,7 +349,7 @@ export const DiseaseScannerPage: React.FC = () => {
           <Cpu className="w-3.5 h-3.5 text-harvest-primary" />
           <span>{language === 'hi' ? 'परीक्षण मोड:' : 'Inference Mode:'}</span>
         </div>
-        <div className="flex items-center space-x-1.5">
+        <div className="flex items-center space-x-1.5 flex-wrap">
           <button
             onClick={() => setTestMode('auto')}
             className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all ${
@@ -336,10 +378,77 @@ export const DiseaseScannerPage: React.FC = () => {
                 : 'bg-white text-stone-600 border border-stone-200 hover:bg-stone-50'
             }`}
           >
-            Simulate 503 Error
+            Simulate 503
+          </button>
+          <button
+            onClick={() => setShowKeyConfig((prev) => !prev)}
+            className="flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[11px] font-bold border border-emerald-300 bg-emerald-50 text-emerald-800 hover:bg-emerald-100 transition-all ml-auto"
+            title="Configure Gemini API Key"
+          >
+            <Key className="w-3 h-3 text-emerald-600" />
+            <span>{showKeyConfig ? (language === 'hi' ? 'कुंजी छुपाएं' : 'Hide Key') : (language === 'hi' ? 'API कुंजी' : 'API Key')}</span>
           </button>
         </div>
       </div>
+
+      {/* In-App Gemini API Key Configuration Drawer */}
+      {showKeyConfig && (
+        <div className="p-3 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-2 text-xs animate-in fade-in duration-200">
+          <div className="flex items-center justify-between">
+            <span className="font-bold text-emerald-950 flex items-center space-x-1.5">
+              <Key className="w-3.5 h-3.5 text-emerald-700" />
+              <span>{language === 'hi' ? 'Google Gemini Vision AI कुंजी' : 'Google Gemini Vision AI Key'}</span>
+            </span>
+            <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100/80 px-2 py-0.5 rounded-md">
+              {env.geminiApiKey ? '✓ ' + (language === 'hi' ? 'सक्रिय' : 'Active') : '✗ ' + (language === 'hi' ? 'कुंजी जोड़ें' : 'Not Set')}
+            </span>
+          </div>
+          <p className="text-[11px] text-emerald-800/80">
+            {language === 'hi'
+              ? 'एप्लिकेशन में सीधे अपनी Gemini API कुंजी दर्ज करें या सहेजें। यह आपके डिवाइस पर सुरक्षित रूप से सहेजी जाती है।'
+              : 'Configure or test your Gemini API key directly inside the application. Saved securely in local storage.'}
+          </p>
+          <div className="flex gap-2">
+            <input
+              type={showRawKey ? 'text' : 'password'}
+              value={customKeyInput}
+              onChange={(e) => setCustomKeyInput(e.target.value)}
+              placeholder="Enter Gemini API Key..."
+              className="flex-1 px-2.5 py-1.5 text-xs bg-white border border-emerald-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-stone-800"
+            />
+            <button
+              onClick={() => setShowRawKey(!showRawKey)}
+              className="px-2.5 py-1 bg-white border border-emerald-200 rounded-xl text-stone-600 text-[11px] hover:bg-stone-50"
+              title="Toggle Mask"
+            >
+              {showRawKey ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+            </button>
+            <button
+              onClick={handleSaveApiKey}
+              className="px-3 py-1 bg-emerald-700 text-white rounded-xl text-[11px] font-bold hover:bg-emerald-800 shadow-xs"
+            >
+              {language === 'hi' ? 'सहेजें' : 'Save'}
+            </button>
+            <button
+              disabled={isTestingKey}
+              onClick={handleTestLiveKey}
+              className="px-2.5 py-1 bg-white border border-emerald-300 text-emerald-800 rounded-xl text-[11px] font-bold hover:bg-emerald-50 flex items-center space-x-1"
+            >
+              {isTestingKey ? <RefreshCw className="w-3 h-3 animate-spin" /> : <span>{language === 'hi' ? 'जांचें' : 'Test'}</span>}
+            </button>
+          </div>
+          {keyTestStatus && (
+            <p className={`text-[11px] font-semibold ${keyTestStatus.success ? 'text-emerald-700' : 'text-red-600'}`}>
+              {keyTestStatus.message}
+            </p>
+          )}
+          {keySavedMessage && (
+            <p className="text-[11px] font-semibold text-emerald-800">
+              {keySavedMessage}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Hidden Native File Input */}
       <input

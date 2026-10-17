@@ -420,16 +420,77 @@ export class DemoReferenceInferenceService implements PlantDiseaseInferenceServi
 }
 
 /**
+ * Downsamples and optimizes image payload before transmission to Vision API.
+ * Compresses oversized mobile camera captures (5-15MB) down to crisp 1024px JPEGs (~150KB),
+ * preventing browser memory pressure, network timeouts, and HTTP 413 errors.
+ */
+export async function optimizeLeafImageForVision(
+  base64OrDataUrl: string,
+  inputMime: string = 'image/jpeg',
+  maxDimension: number = 1024
+): Promise<{ base64: string; mimeType: string }> {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    const rawBase64 = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
+    return { base64: rawBase64, mimeType: inputMime };
+  }
+
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    const fullSrc = base64OrDataUrl.startsWith('data:')
+      ? base64OrDataUrl
+      : `data:${inputMime};base64,${base64OrDataUrl}`;
+
+    img.onload = () => {
+      let width = img.width;
+      let height = img.height;
+
+      // Scale down if larger than maxDimension
+      if (width > maxDimension || height > maxDimension) {
+        if (width > height) {
+          height = Math.round((height * maxDimension) / width);
+          width = maxDimension;
+        } else {
+          width = Math.round((width * maxDimension) / height);
+          height = maxDimension;
+        }
+      }
+
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) {
+        const raw = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
+        return resolve({ base64: raw, mimeType: inputMime });
+      }
+
+      ctx.drawImage(img, 0, 0, width, height);
+      const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      const optimizedBase64 = optimizedDataUrl.split(',')[1];
+      resolve({ base64: optimizedBase64, mimeType: 'image/jpeg' });
+    };
+
+    img.onerror = () => {
+      const raw = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
+      resolve({ base64: raw, mimeType: inputMime });
+    };
+
+    img.src = fullSrc;
+  });
+}
+
+/**
  * Service 2: Live Gemini Vision API Engine
  * Connects to Google Gemini Multimodal Vision API when VITE_GEMINI_API_KEY is supplied.
  */
 export class GeminiVisionInferenceService implements PlantDiseaseInferenceService {
   serviceId = 'gemini-flash-vision';
   serviceName = 'Gemini Multimodal Vision API';
-  isApiConfigured: boolean;
 
-  constructor() {
-    this.isApiConfigured = Boolean(
+  get isApiConfigured(): boolean {
+    return Boolean(
       env.geminiApiKey &&
       !env.geminiApiKey.includes('your-gemini') &&
       env.geminiApiKey.length > 15
@@ -488,6 +549,11 @@ export class GeminiVisionInferenceService implements PlantDiseaseInferenceServic
       throw new Error('No valid base64 leaf image payload found to send to Vision API.');
     }
 
+    // Optimize image size to prevent memory pressure or payload limits
+    const optimized = await optimizeLeafImageForVision(base64Image, mimeType, 1024);
+    base64Image = optimized.base64;
+    mimeType = optimized.mimeType;
+
     const systemPrompt = `You are a certified senior agricultural plant pathologist and agronomist.
 Examine this crop leaf image. Identify the crop, specific disease or pest (or if healthy), scientific name, pathogen type, severity, confidence (0 to 100), symptoms, and cautious treatment protocols.
 Respond STRICTLY with valid JSON conforming to this schema (no extra markdown):
@@ -530,76 +596,93 @@ Respond STRICTLY with valid JSON conforming to this schema (no extra markdown):
       },
     };
 
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    };
-    if (apiKey) {
-      headers['x-goog-api-key'] = apiKey;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Vision API error [${response.status}]: ${errText.slice(0, 200)}`);
+      }
+
+      const data = await response.json();
+      const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!candidateText) {
+        throw new Error('Empty response received from Vision API.');
+      }
+
+      let cleanedJson = candidateText.trim();
+      if (cleanedJson.startsWith('```')) {
+        cleanedJson = cleanedJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
+      }
+
+      const parsed = JSON.parse(cleanedJson);
+
+      return {
+        isModelConnected: true,
+        inferenceMode: 'live_ai',
+        modelDetails: {
+          provider: 'Gemini Multimodal Vision API',
+          modelIdentifier: 'gemini-flash-latest',
+          latencyMs: Date.now() - startTime,
+          apiConfigured: true,
+        },
+        crop: {
+          nameEn: parsed.cropNameEn || 'Identified Crop',
+          nameHi: parsed.cropNameHi || parsed.cropNameEn || 'पहचानी गई फसल',
+          scientificName: parsed.cropScientific,
+        },
+        condition: {
+          nameEn: parsed.diseaseNameEn || 'Diagnosed Condition',
+          nameHi: parsed.diseaseNameHi || parsed.diseaseNameEn || 'रोग स्थिति',
+          pathogenType: parsed.pathogenType || 'Fungal',
+          scientificName: parsed.diseaseScientific,
+          isHealthy: Boolean(parsed.isHealthy),
+        },
+        severity: parsed.severity || 'Moderate',
+        confidence: typeof parsed.confidence === 'number' ? Math.round(parsed.confidence * 10) / 10 : undefined,
+        confidenceGenuine: true,
+        confidenceNote: 'Genuine model posterior confidence score computed by Gemini Vision classifier.',
+        symptoms: Array.isArray(parsed.symptoms) ? parsed.symptoms : [],
+        guidance: {
+          organicRemedies: Array.isArray(parsed.organicRemedies) ? parsed.organicRemedies : [],
+          chemicalRemedies: Array.isArray(parsed.chemicalRemedies) ? parsed.chemicalRemedies : [],
+          sprayWindow: parsed.sprayWindow || 'Inspect field during clear weather.',
+          fieldSafetyPPE: Array.isArray(parsed.fieldSafetyPPE) ? parsed.fieldSafetyPPE : ['Wear protective gloves and mask.'],
+          agronomistConsultNotice: parsed.agronomistConsultNotice || 'Consult local KVK agronomist before purchase.',
+        },
+        disclaimerEn:
+          'CAUTION: AI Vision classification is a field decision aid. Always verify with a certified agronomist before purchasing or applying synthetic chemicals.',
+        disclaimerHi:
+          'सावधानी: AI विजन विश्लेषण केवल मार्गदर्शन हेतु है। रासायनिक छिड़काव से पहले प्रमाणित कृषि विशेषज्ञ से सलाह अवश्य लें।',
+        analyzedAt: new Date().toISOString(),
+      };
+    } catch (apiError: unknown) {
+      // In auto mode, gracefully fallback to transparent reference catalog so farmer is never left without diagnosis
+      if (request.forceMode === 'auto' || !request.forceMode) {
+        console.warn('Gemini Vision API encountered an error, falling back to offline reference:', apiError);
+        const demoService = new DemoReferenceInferenceService();
+        const fallback = await demoService.analyzeLeaf(request);
+        const errMessage = apiError instanceof Error ? apiError.message : 'API connection error';
+        return {
+          ...fallback,
+          isModelConnected: false,
+          inferenceMode: 'demo_reference',
+          modelDetails: {
+            ...fallback.modelDetails,
+            provider: 'Offline Agronomic Reference DB',
+            modelIdentifier: 'ICAR-Ext-Heuristic-Fallback',
+          },
+          confidenceNote: `Live Vision API error (${errMessage.slice(0, 120)}). Displaying verified ICAR reference pathology.`,
+        };
+      }
+      throw apiError;
     }
-
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`Vision API error [${response.status}]: ${errText.slice(0, 200)}`);
-    }
-
-    const data = await response.json();
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!candidateText) {
-      throw new Error('Empty response received from Vision API.');
-    }
-
-    let cleanedJson = candidateText.trim();
-    if (cleanedJson.startsWith('```')) {
-      cleanedJson = cleanedJson.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '');
-    }
-
-    const parsed = JSON.parse(cleanedJson);
-
-    return {
-      isModelConnected: true,
-      inferenceMode: 'live_ai',
-      modelDetails: {
-        provider: 'Gemini Multimodal Vision API',
-        modelIdentifier: 'gemini-flash-latest',
-        latencyMs: Date.now() - startTime,
-        apiConfigured: true,
-      },
-      crop: {
-        nameEn: parsed.cropNameEn || 'Identified Crop',
-        nameHi: parsed.cropNameHi || parsed.cropNameEn || 'पहचानी गई फसल',
-        scientificName: parsed.cropScientific,
-      },
-      condition: {
-        nameEn: parsed.diseaseNameEn || 'Diagnosed Condition',
-        nameHi: parsed.diseaseNameHi || parsed.diseaseNameEn || 'रोग स्थिति',
-        pathogenType: parsed.pathogenType || 'Fungal',
-        scientificName: parsed.diseaseScientific,
-        isHealthy: Boolean(parsed.isHealthy),
-      },
-      severity: parsed.severity || 'Moderate',
-      confidence: typeof parsed.confidence === 'number' ? Math.round(parsed.confidence * 10) / 10 : undefined,
-      confidenceGenuine: true,
-      confidenceNote: 'Genuine model posterior confidence score computed by Gemini Vision classifier.',
-      symptoms: Array.isArray(parsed.symptoms) ? parsed.symptoms : [],
-      guidance: {
-        organicRemedies: Array.isArray(parsed.organicRemedies) ? parsed.organicRemedies : [],
-        chemicalRemedies: Array.isArray(parsed.chemicalRemedies) ? parsed.chemicalRemedies : [],
-        sprayWindow: parsed.sprayWindow || 'Inspect field during clear weather.',
-        fieldSafetyPPE: Array.isArray(parsed.fieldSafetyPPE) ? parsed.fieldSafetyPPE : ['Wear protective gloves and mask.'],
-        agronomistConsultNotice: parsed.agronomistConsultNotice || 'Consult local KVK agronomist before purchase.',
-      },
-      disclaimerEn:
-        'CAUTION: AI Vision classification is a field decision aid. Always verify with a certified agronomist before purchasing or applying synthetic chemicals.',
-      disclaimerHi:
-        'सावधानी: AI विजन विश्लेषण केवल मार्गदर्शन हेतु है। रासायनिक छिड़काव से पहले प्रमाणित कृषि विशेषज्ञ से सलाह अवश्य लें।',
-      analyzedAt: new Date().toISOString(),
-    };
   }
 }
 
