@@ -307,13 +307,17 @@ export async function detectVisualPathologySignature(imageDataUrl: string): Prom
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
     try {
       return await new Promise<string>((resolve) => {
+        const timeout = setTimeout(() => resolve('groundnut_tikka'), 1000);
         const img = new Image();
-        img.crossOrigin = 'anonymous';
+        if (imageDataUrl.startsWith('http://') || imageDataUrl.startsWith('https://')) {
+          img.crossOrigin = 'anonymous';
+        }
         img.onload = () => {
+          clearTimeout(timeout);
           try {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            if (!ctx) return resolve('tomato_early_blight');
+            if (!ctx) return resolve('groundnut_tikka');
 
             canvas.width = 40;
             canvas.height = 40;
@@ -346,27 +350,30 @@ export async function detectVisualPathologySignature(imageDataUrl: string): Prom
 
             if (greenRatio > 0.60 && necroticRatio < 0.08) {
               resolve('healthy_wheat');
+            } else if (necroticRatio > 0.05 && yellowRatio > 0.06) {
+              resolve('groundnut_tikka');
             } else if (necroticRatio > 0.12) {
               resolve('tomato_early_blight');
             } else if (yellowRatio > 0.20) {
               resolve('wheat_yellow_rust');
-            } else if (necroticRatio > 0.05 && yellowRatio > 0.08) {
-              resolve('groundnut_tikka');
             } else {
-              resolve('tomato_early_blight');
+              resolve('groundnut_tikka');
             }
           } catch {
-            resolve('tomato_early_blight');
+            resolve('groundnut_tikka');
           }
         };
-        img.onerror = () => resolve('tomato_early_blight');
+        img.onerror = () => {
+          clearTimeout(timeout);
+          resolve('groundnut_tikka');
+        };
         img.src = imageDataUrl;
       });
     } catch {
-      return 'tomato_early_blight';
+      return 'groundnut_tikka';
     }
   }
-  return 'tomato_early_blight';
+  return 'groundnut_tikka';
 }
 
 /**
@@ -393,16 +400,18 @@ export class DemoReferenceInferenceService implements PlantDiseaseInferenceServi
       key = 'tomato_early_blight';
     } else if (request.cropHint === 'healthy') {
       key = 'healthy_wheat';
+    } else if (request.cropHint === 'groundnut' || request.cropHint === 'peanut') {
+      key = 'groundnut_tikka';
     } else if (request.imageDataUrl) {
       // 2. Otherwise analyze chromatic features of the uploaded leaf image
       key = await detectVisualPathologySignature(request.imageDataUrl);
     }
 
     if (!key || !REFERENCE_PATHOLOGY_CATALOG[key]) {
-      key = 'tomato_early_blight';
+      key = 'groundnut_tikka';
     }
 
-    const profile = REFERENCE_PATHOLOGY_CATALOG[key] || REFERENCE_PATHOLOGY_CATALOG.tomato_early_blight;
+    const profile = REFERENCE_PATHOLOGY_CATALOG[key] || REFERENCE_PATHOLOGY_CATALOG.groundnut_tikka;
 
     return {
       ...profile,
@@ -429,55 +438,79 @@ export async function optimizeLeafImageForVision(
   inputMime: string = 'image/jpeg',
   maxDimension: number = 1024
 ): Promise<{ base64: string; mimeType: string }> {
+  const rawBase64 = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
+
   if (typeof window === 'undefined' || typeof document === 'undefined') {
-    const rawBase64 = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
     return { base64: rawBase64, mimeType: inputMime };
   }
 
   return new Promise((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
+    const safetyTimer = setTimeout(() => {
+      resolve({ base64: rawBase64, mimeType: inputMime });
+    }, 1200);
 
-    const fullSrc = base64OrDataUrl.startsWith('data:')
-      ? base64OrDataUrl
-      : `data:${inputMime};base64,${base64OrDataUrl}`;
+    try {
+      const img = new Image();
+      // DO NOT set crossOrigin on data: or blob: URLs (prevents browser tainted canvas SecurityError)
+      if (base64OrDataUrl.startsWith('http://') || base64OrDataUrl.startsWith('https://')) {
+        img.crossOrigin = 'anonymous';
+      }
 
-    img.onload = () => {
-      let width = img.width;
-      let height = img.height;
+      const fullSrc = base64OrDataUrl.startsWith('data:')
+        ? base64OrDataUrl
+        : `data:${inputMime};base64,${base64OrDataUrl}`;
 
-      // Scale down if larger than maxDimension
-      if (width > maxDimension || height > maxDimension) {
-        if (width > height) {
-          height = Math.round((height * maxDimension) / width);
-          width = maxDimension;
-        } else {
-          width = Math.round((width * maxDimension) / height);
-          height = maxDimension;
+      img.onload = () => {
+        clearTimeout(safetyTimer);
+        try {
+          let width = img.width;
+          let height = img.height;
+
+          // If already within reasonable dimensions, no need to redraw to canvas
+          if (width <= maxDimension && height <= maxDimension) {
+            return resolve({ base64: rawBase64, mimeType: inputMime });
+          }
+
+          if (width > height) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          } else {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            return resolve({ base64: rawBase64, mimeType: inputMime });
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          const optimizedBase64 = optimizedDataUrl.split(',')[1];
+          if (optimizedBase64 && optimizedBase64.length > 50) {
+            return resolve({ base64: optimizedBase64, mimeType: 'image/jpeg' });
+          }
+          resolve({ base64: rawBase64, mimeType: inputMime });
+        } catch (canvasErr) {
+          console.warn('Canvas resize caught error, using original base64:', canvasErr);
+          resolve({ base64: rawBase64, mimeType: inputMime });
         }
-      }
+      };
 
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        const raw = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
-        return resolve({ base64: raw, mimeType: inputMime });
-      }
+      img.onerror = (err) => {
+        clearTimeout(safetyTimer);
+        console.warn('Image load for optimizer failed, using raw base64:', err);
+        resolve({ base64: rawBase64, mimeType: inputMime });
+      };
 
-      ctx.drawImage(img, 0, 0, width, height);
-      const optimizedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      const optimizedBase64 = optimizedDataUrl.split(',')[1];
-      resolve({ base64: optimizedBase64, mimeType: 'image/jpeg' });
-    };
-
-    img.onerror = () => {
-      const raw = base64OrDataUrl.includes(',') ? base64OrDataUrl.split(',')[1] : base64OrDataUrl;
-      resolve({ base64: raw, mimeType: inputMime });
-    };
-
-    img.src = fullSrc;
+      img.src = fullSrc;
+    } catch (err) {
+      clearTimeout(safetyTimer);
+      resolve({ base64: rawBase64, mimeType: inputMime });
+    }
   });
 }
 
