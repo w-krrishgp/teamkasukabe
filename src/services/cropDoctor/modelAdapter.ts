@@ -530,12 +530,16 @@ Respond STRICTLY with valid JSON conforming to this schema (no extra markdown):
       },
     };
 
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    };
+    if (apiKey) {
+      headers['x-goog-api-key'] = apiKey;
+    }
+
     const response = await fetch(url, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': apiKey,
-      },
+      headers,
       body: JSON.stringify(payload),
     });
 
