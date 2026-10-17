@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Store,
   TrendingUp,
@@ -9,6 +10,8 @@ import {
   Info,
   X,
   CheckCircle2,
+  Scale,
+  ArrowRight,
 } from 'lucide-react';
 import {
   Button,
@@ -29,6 +32,7 @@ import { formatCurrency } from '@/utils/formatters';
 import { useLanguage } from '@/context/LanguageContext';
 
 export const MarketPage = () => {
+  const navigate = useNavigate();
   const { language } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCropFilter, setSelectedCropFilter] = useState('All');
@@ -78,6 +82,34 @@ export const MarketPage = () => {
             ? 'दैनिक APMC मंडी दरें, मूल्य रुझान व सत्यापित मिल खरीदारों से सीधा संपर्क'
             : 'Live APMC mandi pricing, price-trend momentum & verified miller direct trade'}
         </p>
+      </div>
+
+      {/* Signature Feature: No Distress Selling Decision Banner */}
+      <div
+        onClick={() => navigate('/no-distress-selling')}
+        className="bg-harvest-cream border-2 border-harvest-primary/30 hover:border-harvest-primary p-3.5 rounded-2xl flex items-center justify-between cursor-pointer shadow-xs active:scale-[0.99] transition-all group"
+      >
+        <div className="flex items-center space-x-3">
+          <div className="p-2.5 rounded-xl bg-harvest-pale text-harvest-primary shrink-0">
+            <Scale className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center space-x-1.5">
+              <span className="text-[10px] font-extrabold uppercase tracking-wide bg-harvest-primary text-white px-2 py-0.2 rounded-md">
+                Decision Tool
+              </span>
+              <h2 className="text-xs font-black text-harvest-deep">
+                No Distress Selling Engine
+              </h2>
+            </div>
+            <p className="text-[11px] text-stone-600 mt-0.5">
+              Compare Net Realizations: Sell Now vs Store Later vs Food Mills vs FPO Pooling
+            </p>
+          </div>
+        </div>
+        <div className="p-2 rounded-xl bg-white border border-stone-200 text-harvest-deep group-hover:bg-harvest-primary group-hover:text-white transition-colors shrink-0">
+          <ArrowRight className="w-4 h-4" />
+        </div>
       </div>
 
       {/* Sell Produce Action Banner */}

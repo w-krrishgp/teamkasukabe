@@ -151,9 +151,18 @@ export const TopHeader: React.FC = () => {
 
       {/* Farm Switcher Modal / Sheet */}
       {isFarmModalOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
-          <div className="w-full max-w-sm bg-white text-harvest-deep rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-200">
+        <div
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn"
+          onClick={() => setIsFarmModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm sm:max-w-md bg-white text-harvest-deep rounded-t-3xl sm:rounded-3xl p-5 pb-8 sm:pb-5 shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Mobile Sheet Drag Handle */}
+            <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto -mt-1 mb-2.5 sm:hidden" />
+
+            <div className="flex items-center justify-between pb-2 border-b border-stone-200 shrink-0">
               <div>
                 <h3 className="text-sm font-bold text-harvest-deep">
                   {language === 'hi' ? 'अपना खेत चुनें' : 'Select Registered Farm'}
@@ -170,7 +179,7 @@ export const TopHeader: React.FC = () => {
               </button>
             </div>
 
-            <div className="space-y-2">
+            <div className="flex-1 overflow-y-auto overscroll-contain py-2 space-y-2 touch-pan-y min-h-0">
               <button
                 type="button"
                 onClick={handleUseGps}
@@ -228,7 +237,7 @@ export const TopHeader: React.FC = () => {
               ))}
             </div>
 
-            <div className="pt-2 text-center">
+            <div className="pt-2 text-center shrink-0">
               <button
                 onClick={() => setIsFarmModalOpen(false)}
                 className="w-full py-2.5 rounded-xl bg-harvest-warm text-harvest-deep text-xs font-semibold hover:bg-stone-200 transition-colors"
@@ -242,53 +251,101 @@ export const TopHeader: React.FC = () => {
 
       {/* Notifications Drawer */}
       {isNotifOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn">
-          <div className="w-full max-w-sm bg-white text-harvest-deep rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between pb-2 border-b border-stone-200">
+        <div
+          className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-fadeIn"
+          onClick={() => setIsNotifOpen(false)}
+        >
+          <div
+            className="w-full max-w-sm sm:max-w-md bg-white text-harvest-deep rounded-t-3xl sm:rounded-3xl p-5 pb-8 sm:pb-5 shadow-2xl flex flex-col max-h-[85vh] sm:max-h-[80vh] overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Mobile Sheet Drag Handle */}
+            <div className="w-10 h-1 bg-stone-300 rounded-full mx-auto -mt-1 mb-2.5 sm:hidden" />
+
+            <div className="flex items-center justify-between pb-3 border-b border-stone-200 shrink-0">
               <div className="flex items-center space-x-2">
-                <Bell className="w-4 h-4 text-harvest-primary" />
-                <h3 className="text-sm font-bold text-harvest-deep">{t('notifications')}</h3>
+                <div className="p-1.5 rounded-xl bg-harvest-pale text-harvest-primary">
+                  <Bell className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-harvest-deep">{t('notifications')}</h3>
+                  <span className="text-[10px] text-stone-500 font-medium">
+                    {language === 'hi' ? 'खेत व मंडी के ताजा अलर्ट' : 'Farm & market live alerts'}
+                  </span>
+                </div>
               </div>
               <button
                 onClick={() => setIsNotifOpen(false)}
-                className="p-1 rounded-lg text-harvest-muted hover:bg-stone-100"
+                className="p-1.5 rounded-full text-stone-500 hover:bg-stone-100 transition-colors"
+                aria-label="Close"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="space-y-2.5 max-h-80 overflow-y-auto">
+            {/* Scrollable Notifications Feed with Native Momentum Touch */}
+            <div className="flex-1 overflow-y-auto overscroll-contain py-2.5 space-y-2.5 touch-pan-y min-h-0 pr-0.5">
+              {/* Alert 1 */}
               <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold text-amber-900">
-                  <span>Yellow Rust Alert (4 km away)</span>
+                  <span>{language === 'hi' ? 'पीला रतुआ चेतावनी (4 किमी दूर)' : 'Yellow Rust Alert (4 km away)'}</span>
                   <span className="text-[10px] text-amber-700">1h ago</span>
                 </div>
-                <p className="text-xs text-amber-800">
+                <p className="text-xs text-amber-800 leading-relaxed">
                   {language === 'hi'
                     ? 'पड़ोस के 3 खेतों में गेहूं के पीले रतुए के लक्षण दिखे हैं। तुरंत जांच करें।'
                     : 'Preventive foliar spray recommended for HD-2967 wheat tillering.'}
                 </p>
               </div>
 
+              {/* Alert 2 */}
               <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
                 <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
-                  <span>Mandi Price Hike (+₹80/Qtl)</span>
+                  <span>{language === 'hi' ? 'मंडी भाव में उछाल (+₹80/क्विंटल)' : 'Mandi Price Hike (+₹80/Qtl)'}</span>
                   <span className="text-[10px] text-emerald-700">3h ago</span>
                 </div>
-                <p className="text-xs text-emerald-800">
+                <p className="text-xs text-emerald-800 leading-relaxed">
                   {language === 'hi'
                     ? 'ऊंझा मंडी में गेहूं का भाव बढ़कर ₹2,680 प्रति क्विंटल पहुंचा।'
                     : 'Unjha APMC wheat modal rate touched ₹2,680 / Quintal with high miller demand.'}
                 </p>
               </div>
+
+              {/* Alert 3 */}
+              <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 space-y-1">
+                <div className="flex items-center justify-between text-xs font-bold text-sky-900">
+                  <span>{language === 'hi' ? 'मौसम रडार: वर्षा संभावना' : 'Agro-Met Radar: Rain Forecast'}</span>
+                  <span className="text-[10px] text-sky-700">5h ago</span>
+                </div>
+                <p className="text-xs text-sky-800 leading-relaxed">
+                  {language === 'hi'
+                    ? 'अगले 48 घंटों में हल्की वर्षा की संभावना। यूरिया छिड़काव स्थगित रखें।'
+                    : 'Light rainfall expected in 48 hours. Postpone foliar urea spraying until clear skies.'}
+                </p>
+              </div>
+
+              {/* Alert 4 */}
+              <div className="p-3 rounded-2xl bg-stone-50 border border-stone-200 space-y-1">
+                <div className="flex items-center justify-between text-xs font-bold text-stone-800">
+                  <span>{language === 'hi' ? 'KCC ऋण ब्याज छूट सक्रिय' : 'KCC Subvention Active (4% p.a.)'}</span>
+                  <span className="text-[10px] text-stone-600">1d ago</span>
+                </div>
+                <p className="text-xs text-stone-600 leading-relaxed">
+                  {language === 'hi'
+                    ? 'समय पर नवीनीकरण पर 3% अतिरिक्त ब्याज छूट उपलब्ध है।'
+                    : 'Annual KCC limit renewal due in March 2027. Maintain prompt repayment history.'}
+                </p>
+              </div>
             </div>
 
-            <button
-              onClick={() => setIsNotifOpen(false)}
-              className="w-full py-2.5 rounded-xl bg-harvest-primary text-white text-xs font-semibold hover:bg-harvest-primary/90 transition-colors"
-            >
-              {t('close')}
-            </button>
+            <div className="pt-3 border-t border-stone-100 shrink-0">
+              <button
+                onClick={() => setIsNotifOpen(false)}
+                className="w-full py-2.5 rounded-xl bg-harvest-primary text-white text-xs font-bold hover:bg-harvest-deep transition-colors shadow-xs active:scale-[0.99]"
+              >
+                {t('close')}
+              </button>
+            </div>
           </div>
         </div>
       )}

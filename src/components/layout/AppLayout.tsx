@@ -21,7 +21,7 @@ export const AppLayout: React.FC = () => {
   return (
     <MobileShell>
       {/* 1. Fixed Top App Bar */}
-      <div className="shrink-0 z-40 w-full">
+      <div className="shrink-0 z-50 w-full relative">
         <TopHeader />
         {!isOnline && <OfflineNotice />}
       </div>
@@ -36,7 +36,7 @@ export const AppLayout: React.FC = () => {
       </main>
 
       {/* 3. Fixed Bottom Navigation Bar */}
-      <div className="shrink-0 z-40 w-full">
+      <div className="shrink-0 z-30 w-full relative">
         <BottomNav />
       </div>
     </MobileShell>

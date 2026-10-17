@@ -9,4 +9,5 @@ export * from './SchemesPage';
 export * from './MarketPage';
 export * from './MandiRatesPage';
 export * from './ProfilePage';
+export * from './NoDistressSellingPage';
 export * from './NotFoundPage';

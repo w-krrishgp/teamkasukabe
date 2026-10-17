@@ -19,6 +19,7 @@ import {
   X,
   Info,
   Building2,
+  Scale,
 } from 'lucide-react';
 import {
   Button,
@@ -253,6 +254,48 @@ export const DashboardPage: React.FC = () => {
               <span>{t('diseaseAlertAction')}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Signature Feature Spotlight: No Distress Selling Decision Engine */}
+      <section aria-label="No Distress Selling Feature">
+        <div
+          onClick={() => navigate('/no-distress-selling')}
+          className="bg-gradient-to-br from-harvest-deep via-[#1a3826] to-[#12281a] text-white p-4 rounded-3xl shadow-md border-2 border-harvest-primary/40 relative overflow-hidden cursor-pointer hover:border-harvest-primary transition-all group active:scale-[0.99]"
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-extrabold tracking-wider uppercase bg-harvest-pale text-harvest-deep px-2.5 py-1 rounded-full shadow-xs">
+              ★ Signature Decision Engine
+            </span>
+            <span className="text-xs font-black text-emerald-300 flex items-center space-x-1">
+              <span>Prevent Glut Losses</span>
+              <ArrowUpRight className="w-4 h-4 text-emerald-400 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+            </span>
+          </div>
+
+          <div className="mt-3 flex items-start space-x-3">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center shrink-0 text-emerald-300">
+              <Scale className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-white leading-snug">
+                No Distress Selling Calculator
+              </h3>
+              <p className="text-xs text-emerald-100/90 mt-0.5 leading-relaxed">
+                Compare Immediate Cash vs Cold Storage vs Direct Food Processors vs Village Crop Pooling before you sell.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-white/10 flex items-center justify-between text-xs">
+            <div className="flex items-center space-x-2 text-[11px] text-emerald-200">
+              <span className="bg-white/10 px-2 py-0.5 rounded-md">Transparent Waterfall</span>
+              <span className="bg-white/10 px-2 py-0.5 rounded-md">Break-Even Math</span>
+            </div>
+            <span className="font-extrabold text-white text-xs underline group-hover:text-emerald-300 transition-colors">
+              Open Engine →
+            </span>
           </div>
         </div>
       </section>
