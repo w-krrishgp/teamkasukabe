@@ -5,3 +5,4 @@ export * from './StatusBadge';
 export * from './LoadingState';
 export * from './ErrorState';
 export * from './NotificationToast';
+export * from './NotificationPermissionBanner';

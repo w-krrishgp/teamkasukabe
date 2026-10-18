@@ -21,7 +21,9 @@ import {
   Building2,
   Scale,
   Warehouse,
+  Volume2,
 } from 'lucide-react';
+import { dispatchNotification } from '@/services/notificationService';
 import {
   Button,
   Card,
@@ -248,13 +250,40 @@ export const DashboardPage: React.FC = () => {
             <p className="text-xs text-amber-900 leading-relaxed">
               {t('diseaseAlertText')}
             </p>
-            <button
-              onClick={() => navigate('/disease-outbreaks')}
-              className="text-xs font-bold text-amber-950 underline hover:text-black inline-flex items-center space-x-1 pt-1"
-            >
-              <span>{language === 'hi' ? 'रोग क्लस्टर रडार व दवा गाइड देखें' : 'View Outbreak Clusters & Treatment Guide'}</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="flex items-center space-x-3 pt-1 flex-wrap gap-y-1.5">
+              <button
+                onClick={() => navigate('/disease-outbreaks')}
+                className="text-xs font-bold text-amber-950 underline hover:text-black inline-flex items-center space-x-1"
+              >
+                <span>{language === 'hi' ? 'रोग क्लस्टर रडार व दवा गाइड देखें' : 'View Outbreak Clusters & Treatment Guide'}</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  dispatchNotification({
+                    id: `dash-alert-${Date.now()}`,
+                    title: language === 'hi' ? '🚨 निकटवर्ती पीला रतुआ चेतावनी (3.8 किमी)' : '🚨 Yellow Rust Outbreak Warning (3.8 km)',
+                    body: language === 'hi'
+                      ? 'वडू गांव में पीला रतुआ दर्ज। गेहूं HD-2967 के लिए प्रोपिकोनाज़ोल 25% EC का छिड़काव करें।'
+                      : 'Detected in Vadu village. Contagion risk for HD-2967 wheat tillers. Spray Propiconazole 25% EC.',
+                    type: 'outbreak_alert',
+                    severity: 'critical',
+                    crop: 'Wheat (HD-2967)',
+                    diseaseName: 'Yellow Rust',
+                    distanceKm: 3.8,
+                    actionUrl: '/disease-outbreaks',
+                    timestamp: 'Just now',
+                    read: false,
+                  });
+                }}
+                className="text-[11px] font-bold text-rose-800 bg-rose-100 hover:bg-rose-200 border border-rose-300 px-2.5 py-1 rounded-xl inline-flex items-center space-x-1 shadow-xs transition-all active:scale-95"
+              >
+                <Volume2 className="w-3 h-3 text-rose-600" />
+                <span>{language === 'hi' ? '⚡ पॉपअप अलर्ट बजाएं' : '⚡ Simulate Alert Popup'}</span>
+              </button>
+            </div>
           </div>
         </div>
 

@@ -288,23 +288,42 @@ export function dispatchNotification(notif: AppNotification) {
   saveNotificationToHistory(notif);
   playOutbreakAlertChime();
 
-  // Dispatch custom DOM event for active UI components
+  console.log('[HarvestGuard Notification] Dispatching alert:', notif.title);
+
+  // 1. Dispatch custom DOM event for active in-app toast components
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent('harvestguard:notification', { detail: notif })
     );
   }
 
-  // If user granted browser notification permission, show real system push notification
+  // 2. If user granted browser notification permission, show real system push notification
   if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
     try {
-      new Notification(notif.title, {
-        body: notif.body,
-        icon: '/favicon.svg',
-        tag: notif.id,
-      });
-    } catch {
-      // Fallback
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.ready.then((reg) => {
+          reg.showNotification(notif.title, {
+            body: notif.body,
+            icon: '/favicon.svg',
+            badge: '/favicon.svg',
+            tag: notif.id,
+          });
+        }).catch(() => {
+          new Notification(notif.title, {
+            body: notif.body,
+            icon: '/favicon.svg',
+            tag: notif.id,
+          });
+        });
+      } else {
+        new Notification(notif.title, {
+          body: notif.body,
+          icon: '/favicon.svg',
+          tag: notif.id,
+        });
+      }
+    } catch (pushErr) {
+      console.warn('[HarvestGuard Notification] Native notification error:', pushErr);
     }
   }
 }

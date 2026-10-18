@@ -4,7 +4,7 @@ import { TopHeader } from './TopHeader';
 import { BottomNav } from './BottomNav';
 import { MobileShell } from './MobileShell';
 import { OfflineNotice } from '@/components/common/ErrorState';
-import { NotificationToast } from '@/components/common/NotificationToast';
+import { NotificationToast, NotificationPermissionBanner } from '@/components/common';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export const AppLayout: React.FC = () => {
@@ -36,6 +36,7 @@ export const AppLayout: React.FC = () => {
         id="app-main-content"
         className="flex-1 w-full overflow-y-auto overscroll-contain px-4 py-3 space-y-4 focus:outline-none"
       >
+        <NotificationPermissionBanner />
         <Outlet />
       </main>
 

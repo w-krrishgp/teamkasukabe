@@ -32,8 +32,11 @@ export const NotificationToast = () => {
   if (!currentNotif) return null;
 
   return (
-    <div className="fixed top-4 left-3 right-3 z-50 max-w-md mx-auto animate-in slide-in-from-top-4 duration-300">
-      <div className="bg-gradient-to-r from-rose-950 via-rose-900 to-[#142318] text-white p-3.5 rounded-2xl shadow-2xl border-2 border-rose-500/80 space-y-2">
+    <aside
+      aria-label="Proximity Emergency Alert"
+      className="fixed top-3 left-3 right-3 z-[120] max-w-md mx-auto animate-in slide-in-from-top-4 duration-300 drop-shadow-2xl"
+    >
+      <div className="bg-gradient-to-r from-rose-950 via-rose-900 to-[#142318] text-white p-3.5 rounded-2xl shadow-2xl border-2 border-rose-500 space-y-2 ring-2 ring-rose-500/30">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-2">
             <span className="p-1 rounded-lg bg-rose-500/30 text-rose-300 border border-rose-400/40">
@@ -76,6 +79,6 @@ export const NotificationToast = () => {
           </button>
         </div>
       </div>
-    </div>
+    </aside>
   );
 };

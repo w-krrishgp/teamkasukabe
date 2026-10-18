@@ -8,11 +8,18 @@ import {
   Check,
   X,
   Compass,
+  BellRing,
+  Volume2,
 } from 'lucide-react';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useLanguage } from '@/context/LanguageContext';
 import { getFarmLocation } from '@/services/deviceService';
-import { getNotificationHistory, AppNotification } from '@/services/notificationService';
+import {
+  getNotificationHistory,
+  AppNotification,
+  requestPushPermission,
+  dispatchNotification,
+} from '@/services/notificationService';
 
 export const TopHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -45,6 +52,24 @@ export const TopHeader: React.FC = () => {
   }, []);
 
   const unreadCount = notifList.filter((n) => !n.read).length;
+
+  const handleTestAlertPopup = () => {
+    dispatchNotification({
+      id: `manual-test-${Date.now()}`,
+      title: language === 'hi' ? '🚨 लाइव टेस्ट: पीला रतुआ चेतावनी' : '🚨 LIVE TEST: Yellow Rust Proximity Warning',
+      body: language === 'hi'
+        ? 'वडू गांव (3.8 किमी दूर) में प्रकोप दर्ज। त्वरित फोलियर निरीक्षण की सलाह दी जाती है।'
+        : 'Outbreak reported 3.8 km away in Vadu. Foliar inspection & preventive spray recommended.',
+      type: 'outbreak_alert',
+      severity: 'critical',
+      crop: 'Wheat (HD-2967)',
+      diseaseName: 'Yellow Rust',
+      distanceKm: 3.8,
+      actionUrl: '/disease-outbreaks',
+      timestamp: 'Just now',
+      read: false,
+    });
+  };
 
   const handleUseGps = async () => {
     setIsLocating(true);
@@ -301,6 +326,57 @@ export const TopHeader: React.FC = () => {
               >
                 <X className="w-5 h-5" />
               </button>
+            </div>
+
+            {/* Live Push Status & Instant Popup Trigger Bar */}
+            <div className="p-3 my-2 bg-stone-50 border border-stone-200 rounded-2xl space-y-2 shrink-0">
+              <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-stone-600 flex items-center space-x-1">
+                  <BellRing className="w-3.5 h-3.5 text-harvest-primary" />
+                  <span>{language === 'hi' ? 'पुश नोटिफिकेशन स्थिति:' : 'Browser Push Status:'}</span>
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full font-bold ${
+                    typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted'
+                      ? 'bg-emerald-100 text-emerald-800'
+                      : typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'denied'
+                      ? 'bg-rose-100 text-rose-800'
+                      : 'bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  {typeof window !== 'undefined' && 'Notification' in window
+                    ? Notification.permission === 'granted'
+                      ? language === 'hi' ? 'सक्रिय (Active)' : 'Enabled (Active)'
+                      : Notification.permission === 'denied'
+                      ? language === 'hi' ? 'ब्लॉक (Blocked)' : 'Blocked by Browser'
+                      : language === 'hi' ? 'अनुमति चाहिए' : 'Permission Needed'
+                    : 'Unsupported'}
+                </span>
+              </div>
+
+              <div className="flex items-center space-x-2">
+                {typeof window !== 'undefined' && 'Notification' in window && Notification.permission !== 'granted' && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await requestPushPermission();
+                      handleTestAlertPopup();
+                    }}
+                    className="flex-1 py-1.5 px-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1"
+                  >
+                    <Bell className="w-3 h-3" />
+                    <span>{language === 'hi' ? 'पुश अनुमति दें' : 'Allow Push'}</span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleTestAlertPopup}
+                  className="flex-1 py-1.5 px-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-xs flex items-center justify-center space-x-1"
+                >
+                  <Volume2 className="w-3 h-3" />
+                  <span>{language === 'hi' ? '⚡ पॉपअप व साउंड टेस्ट करें' : '⚡ Test Alert Popup & Sound'}</span>
+                </button>
+              </div>
             </div>
 
             {/* Scrollable Notifications Feed with Native Momentum Touch */}
