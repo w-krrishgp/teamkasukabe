@@ -6,6 +6,7 @@ import { MobileShell } from './MobileShell';
 import { OfflineNotice } from '@/components/common/ErrorState';
 import { NotificationToast, NotificationPermissionBanner } from '@/components/common';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { VoiceMandiButton } from '@/components/voice';
 
 export const AppLayout: React.FC = () => {
   const { isOnline } = useNetworkStatus();
@@ -44,6 +45,9 @@ export const AppLayout: React.FC = () => {
       <div className="shrink-0 z-30 w-full relative">
         <BottomNav />
       </div>
+
+      {/* 4. Global Floating Voice Mandi Assistant (Like Meta AI in WhatsApp) */}
+      <VoiceMandiButton />
     </MobileShell>
   );
 };
