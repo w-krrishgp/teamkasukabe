@@ -507,7 +507,7 @@ export async function optimizeLeafImageForVision(
       };
 
       img.src = fullSrc;
-    } catch (err) {
+    } catch {
       clearTimeout(safetyTimer);
       resolve({ base64: rawBase64, mimeType: inputMime });
     }

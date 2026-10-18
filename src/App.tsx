@@ -7,6 +7,8 @@ import {
   DiseaseScannerPage,
   IntelligencePage,
   WeatherPage,
+  DiseaseOutbreakPage,
+  ColdStoragePage,
   KhetScorePage,
   FinancePage,
   SchemesPage,
@@ -23,7 +25,7 @@ export function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<AppLayout />}>
-            {/* 11 Core Agricultural Feature Routes + Signature No Distress Selling */}
+            {/* Core Agricultural Feature Routes + Signature No Distress Selling */}
             <Route index element={<DashboardPage />} />
             <Route path="no-distress-selling" element={<NoDistressSellingPage />} />
             <Route path="distress-selling" element={<NoDistressSellingPage />} />
@@ -32,6 +34,9 @@ export function App() {
             <Route path="crop-doctor" element={<DiseaseScannerPage />} />
             <Route path="intelligence" element={<IntelligencePage />} />
             <Route path="weather" element={<WeatherPage />} />
+            <Route path="disease-outbreaks" element={<DiseaseOutbreakPage />} />
+            <Route path="disease-outbreak" element={<DiseaseOutbreakPage />} />
+            <Route path="cold-storage" element={<ColdStoragePage />} />
             <Route path="khet-score" element={<KhetScorePage />} />
             <Route path="finance" element={<FinancePage />} />
             <Route path="schemes" element={<SchemesPage />} />

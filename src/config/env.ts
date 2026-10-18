@@ -15,6 +15,15 @@ interface AppConfig {
   geminiApiKey?: string;
   isMockFallbackEnabled: boolean;
   isOfflineCacheEnabled: boolean;
+  firebase: {
+    apiKey: string;
+    authDomain: string;
+    projectId: string;
+    storageBucket: string;
+    messagingSenderId: string;
+    appId: string;
+    vapidKey: string;
+  };
 }
 
 // Safely access env vars in both Vite (import.meta.env) and Node/testing (process.env)
@@ -67,6 +76,15 @@ export const env: AppConfig = {
   },
   isMockFallbackEnabled: metaEnv.VITE_ENABLE_MOCK_FALLBACK !== 'false',
   isOfflineCacheEnabled: metaEnv.VITE_ENABLE_OFFLINE_CACHE !== 'false',
+  firebase: {
+    apiKey: metaEnv.VITE_FIREBASE_API_KEY || '',
+    authDomain: metaEnv.VITE_FIREBASE_AUTH_DOMAIN || '',
+    projectId: metaEnv.VITE_FIREBASE_PROJECT_ID || '',
+    storageBucket: metaEnv.VITE_FIREBASE_STORAGE_BUCKET || '',
+    messagingSenderId: metaEnv.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
+    appId: metaEnv.VITE_FIREBASE_APP_ID || '',
+    vapidKey: metaEnv.VITE_FIREBASE_VAPID_KEY || '',
+  },
 };
 
 export const isConfigured = {
@@ -83,4 +101,5 @@ export const isConfigured = {
     !env.geminiApiKey.includes('your-gemini') &&
     env.geminiApiKey.length > 15
   ),
+  firebase: Boolean(env.firebase.apiKey && env.firebase.projectId),
 };

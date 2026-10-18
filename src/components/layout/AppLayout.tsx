@@ -4,6 +4,7 @@ import { TopHeader } from './TopHeader';
 import { BottomNav } from './BottomNav';
 import { MobileShell } from './MobileShell';
 import { OfflineNotice } from '@/components/common/ErrorState';
+import { NotificationToast } from '@/components/common/NotificationToast';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 
 export const AppLayout: React.FC = () => {
@@ -20,6 +21,9 @@ export const AppLayout: React.FC = () => {
 
   return (
     <MobileShell>
+      {/* Floating Outbreak Alert Notifications */}
+      <NotificationToast />
+
       {/* 1. Fixed Top App Bar */}
       <div className="shrink-0 z-50 w-full relative">
         <TopHeader />

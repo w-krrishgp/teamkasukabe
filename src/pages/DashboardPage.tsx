@@ -20,6 +20,7 @@ import {
   Info,
   Building2,
   Scale,
+  Warehouse,
 } from 'lucide-react';
 import {
   Button,
@@ -248,10 +249,39 @@ export const DashboardPage: React.FC = () => {
               {t('diseaseAlertText')}
             </p>
             <button
-              onClick={() => navigate('/disease-scanner')}
+              onClick={() => navigate('/disease-outbreaks')}
               className="text-xs font-bold text-amber-950 underline hover:text-black inline-flex items-center space-x-1 pt-1"
             >
-              <span>{t('diseaseAlertAction')}</span>
+              <span>{language === 'hi' ? 'रोग क्लस्टर रडार व दवा गाइड देखें' : 'View Outbreak Clusters & Treatment Guide'}</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Cold Storage & Post-Harvest Risk Card */}
+        <div className="bg-sky-50/90 border border-sky-300/80 rounded-2xl p-3.5 shadow-xs flex items-start space-x-3">
+          <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-800 flex items-center justify-center shrink-0 mt-0.5">
+            <Warehouse className="w-5 h-5 text-sky-700" />
+          </div>
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-extrabold text-sky-950">
+                {language === 'hi' ? 'कोल्ड स्टोरेज सुरक्षा अलर्ट' : 'Cold Chain Post-Harvest Protection'}
+              </h3>
+              <span className="text-[10px] bg-sky-200/80 text-sky-900 font-bold px-2 py-0.5 rounded-full">
+                {language === 'hi' ? '1,150 MT उपलब्ध' : '1,150 MT Free'}
+              </span>
+            </div>
+            <p className="text-xs text-sky-900 leading-relaxed">
+              {language === 'hi'
+                ? 'आगामी बारिश और मंडी में आवक के दबाव से आलू/सरसों को बचाएं। ₹42/क्विंटल से स्थान आरक्षित करें।'
+                : 'Shield potato & mustard from post-harvest moisture. Reserve WDRA vault slots from ₹42/Qtl.'}
+            </p>
+            <button
+              onClick={() => navigate('/cold-storage')}
+              className="text-xs font-bold text-sky-950 underline hover:text-black inline-flex items-center space-x-1 pt-1"
+            >
+              <span>{language === 'hi' ? 'कोल्ड स्टोरेज स्लॉट बुक करें' : 'Book Cold Storage Slot'}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           </div>

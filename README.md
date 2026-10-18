@@ -39,21 +39,29 @@ HarvestGuard is engineered with a mobile-first, rural-friendly interface:
 
 ---
 
-## 🗺️ All 11 Feature Routes
+## 🗺️ Core Agricultural Routes & Member 3 Deliverables
+
+### Member 3 — Farm Intelligence (Features 4–6 & 3 Workflows)
+- **Feature 4: Weather & Agricultural Guidance** (`/weather`) — Live Open-Meteo API connection, multi-location presets + GPS fix, hourly spray suitability matrix, and agro-met advisories.
+- **Feature 5: Disease Outbreak Alert** (`/disease-outbreaks`) — Proximity contagion radius, interactive geographic clustering radar, verified chemical & bio dosage protocols, and farmer crowd-sighting submission.
+- **Feature 6: Cold Storage Risk Mitigation** (`/cold-storage`) — WDRA-certified warehouse listings, live capacity utilization progress bars, perishable spoilage alerts, and digital booking gate pass generation.
+- **Three Farm-Planning & Risk-Management Workflows** (`/intelligence`) — Interactive walkthroughs for Climate Risk Spray Planning, Bio-Security Disease Containment, and Post-Harvest Loss Prevention.
 
 | # | Route | View | Description |
 | :--- | :--- | :--- | :--- |
-| 1 | `/` | **Dashboard** | Farm overview, greeting, quick actions, weather alert, market opportunity, pillars |
+| 1 | `/` | **Dashboard** | Farm overview, greeting, quick actions, weather alert, cold storage alert, market opportunity |
 | 2 | `/farm-care` | **Smart Farm Care** | AI crop doctor hub, target crop selection, leaf scan card, and disease records |
 | 3 | `/disease-scanner` | **AI Leaf Disease Scanner** | Dedicated camera viewfinder, native camera/photo picker, instant severity & dosage guide |
-| 4 | `/intelligence` | **Farm Intelligence** | Sentinel-2 NDVI canopy vigor, micro-weather radar, interactive AI Agronomist chat |
-| 5 | `/weather` | **Weather & Spray Radar** | 5-day agro-meteorological forecast, hourly spray window suitability, live GPS fix |
-| 6 | `/khet-score` | **Khet Score Audit** | Composite 88/100 farm health audit, NPK balance, water security, credit readiness |
-| 7 | `/finance` | **Money & Schemes** | Kisan Credit Card (KCC) limit widget, institutional credit cards, scheme application |
-| 8 | `/schemes` | **Govt Welfare & Subsidies** | PM-KISAN ₹6,000 tracker, PMFBY crop insurance, SMAM machinery, PM-KUSUM solar pumps |
-| 9 | `/market` | **Market Access Hub** | APMC mandi live modal rates, price-trend arrows, direct miller buyer contracts |
-| 10 | `/mandi-rates` | **APMC Live Mandi Rates** | Live commodity prices (Wheat, Mustard, Cumin), market arbitrage (+₹70/Qtl), freight finder |
-| 11 | `/profile` | **Farmer Profile & Identity** | Digital Kisan ID, land records, Aadhaar e-KYC badge, and Rural Network Operation Matrix |
+| 4 | `/intelligence` | **Farm Intelligence Hub** | Three risk-management workflows, Sentinel-2 NDVI canopy vigor, AI Agronomist chat |
+| 5 | `/weather` | **Weather & Spray Radar** | Open-Meteo API live telemetry, hourly spray suitability, agricultural guidance |
+| 6 | `/disease-outbreaks` | **Disease Outbreak Alert** | Geographic clustering radar, proximity contagion alert (<10km), crowd reporting |
+| 7 | `/cold-storage` | **Cold Storage Hub** | WDRA facility catalog, real-time capacity telemetry, digital gate pass booking |
+| 8 | `/khet-score` | **Khet Score Audit** | Composite 88/100 farm health audit, NPK balance, water security, credit readiness |
+| 9 | `/finance` | **Money & Schemes** | Kisan Credit Card (KCC) limit widget, institutional credit cards, scheme application |
+| 10 | `/schemes` | **Govt Welfare & Subsidies** | PM-KISAN ₹6,000 tracker, PMFBY crop insurance, SMAM machinery, PM-KUSUM solar pumps |
+| 11 | `/market` | **Market Access Hub** | APMC mandi live modal rates, price-trend arrows, direct miller buyer contracts |
+| 12 | `/mandi-rates` | **APMC Live Mandi Rates** | Live commodity prices (Wheat, Mustard, Cumin), market arbitrage (+₹70/Qtl), freight finder |
+| 13 | `/profile` | **Farmer Profile & Identity** | Digital Kisan ID, land records, Aadhaar e-KYC badge, and Rural Network Operation Matrix |
 
 ---
 

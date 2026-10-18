@@ -3,6 +3,8 @@ export * from './FarmCarePage';
 export * from './DiseaseScannerPage';
 export * from './IntelligencePage';
 export * from './WeatherPage';
+export * from './DiseaseOutbreakPage';
+export * from './ColdStoragePage';
 export * from './KhetScorePage';
 export * from './FinancePage';
 export * from './SchemesPage';

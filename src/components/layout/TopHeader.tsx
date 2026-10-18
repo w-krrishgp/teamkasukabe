@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Sprout,
@@ -12,6 +12,7 @@ import {
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { useLanguage } from '@/context/LanguageContext';
 import { getFarmLocation } from '@/services/deviceService';
+import { getNotificationHistory, AppNotification } from '@/services/notificationService';
 
 export const TopHeader: React.FC = () => {
   const navigate = useNavigate();
@@ -27,6 +28,23 @@ export const TopHeader: React.FC = () => {
   });
 
   const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [notifList, setNotifList] = useState<AppNotification[]>(() => getNotificationHistory());
+
+  useEffect(() => {
+    const handleNewNotification = (e: Event) => {
+      const customEvent = e as CustomEvent<AppNotification>;
+      if (customEvent.detail) {
+        setNotifList((prev) => [customEvent.detail, ...prev]);
+      }
+    };
+
+    window.addEventListener('harvestguard:notification', handleNewNotification);
+    return () => {
+      window.removeEventListener('harvestguard:notification', handleNewNotification);
+    };
+  }, []);
+
+  const unreadCount = notifList.filter((n) => !n.read).length;
 
   const handleUseGps = async () => {
     setIsLocating(true);
@@ -123,9 +141,11 @@ export const TopHeader: React.FC = () => {
             className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 flex items-center justify-center text-white relative transition-all border border-white/10"
           >
             <Bell className="w-4 h-4 text-harvest-pale" />
-            <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[10px] font-extrabold rounded-full flex items-center justify-center ring-2 ring-[#142318]">
-              2
-            </span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 text-black text-[10px] font-extrabold rounded-full flex items-center justify-center ring-2 ring-[#142318] animate-pulse">
+                {unreadCount}
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -285,57 +305,32 @@ export const TopHeader: React.FC = () => {
 
             {/* Scrollable Notifications Feed with Native Momentum Touch */}
             <div className="flex-1 overflow-y-auto overscroll-contain py-2.5 space-y-2.5 touch-pan-y min-h-0 pr-0.5">
-              {/* Alert 1 */}
-              <div className="p-3 rounded-2xl bg-amber-50 border border-amber-200 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-amber-900">
-                  <span>{language === 'hi' ? 'पीला रतुआ चेतावनी (4 किमी दूर)' : 'Yellow Rust Alert (4 km away)'}</span>
-                  <span className="text-[10px] text-amber-700">1h ago</span>
-                </div>
-                <p className="text-xs text-amber-800 leading-relaxed">
-                  {language === 'hi'
-                    ? 'पड़ोस के 3 खेतों में गेहूं के पीले रतुए के लक्षण दिखे हैं। तुरंत जांच करें।'
-                    : 'Preventive foliar spray recommended for HD-2967 wheat tillering.'}
-                </p>
-              </div>
-
-              {/* Alert 2 */}
-              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-emerald-900">
-                  <span>{language === 'hi' ? 'मंडी भाव में उछाल (+₹80/क्विंटल)' : 'Mandi Price Hike (+₹80/Qtl)'}</span>
-                  <span className="text-[10px] text-emerald-700">3h ago</span>
-                </div>
-                <p className="text-xs text-emerald-800 leading-relaxed">
-                  {language === 'hi'
-                    ? 'ऊंझा मंडी में गेहूं का भाव बढ़कर ₹2,680 प्रति क्विंटल पहुंचा।'
-                    : 'Unjha APMC wheat modal rate touched ₹2,680 / Quintal with high miller demand.'}
-                </p>
-              </div>
-
-              {/* Alert 3 */}
-              <div className="p-3 rounded-2xl bg-sky-50 border border-sky-200 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-sky-900">
-                  <span>{language === 'hi' ? 'मौसम रडार: वर्षा संभावना' : 'Agro-Met Radar: Rain Forecast'}</span>
-                  <span className="text-[10px] text-sky-700">5h ago</span>
-                </div>
-                <p className="text-xs text-sky-800 leading-relaxed">
-                  {language === 'hi'
-                    ? 'अगले 48 घंटों में हल्की वर्षा की संभावना। यूरिया छिड़काव स्थगित रखें।'
-                    : 'Light rainfall expected in 48 hours. Postpone foliar urea spraying until clear skies.'}
-                </p>
-              </div>
-
-              {/* Alert 4 */}
-              <div className="p-3 rounded-2xl bg-stone-50 border border-stone-200 space-y-1">
-                <div className="flex items-center justify-between text-xs font-bold text-stone-800">
-                  <span>{language === 'hi' ? 'KCC ऋण ब्याज छूट सक्रिय' : 'KCC Subvention Active (4% p.a.)'}</span>
-                  <span className="text-[10px] text-stone-600">1d ago</span>
-                </div>
-                <p className="text-xs text-stone-600 leading-relaxed">
-                  {language === 'hi'
-                    ? 'समय पर नवीनीकरण पर 3% अतिरिक्त ब्याज छूट उपलब्ध है।'
-                    : 'Annual KCC limit renewal due in March 2027. Maintain prompt repayment history.'}
-                </p>
-              </div>
+              {notifList.length === 0 ? (
+                <p className="text-xs text-stone-500 text-center py-4">No notifications</p>
+              ) : (
+                notifList.map((n) => (
+                  <div
+                    key={n.id}
+                    onClick={() => {
+                      setIsNotifOpen(false);
+                      if (n.actionUrl) navigate(n.actionUrl);
+                    }}
+                    className={`p-3 rounded-2xl border cursor-pointer hover:border-harvest-primary transition-all space-y-1 ${
+                      n.severity === 'critical'
+                        ? 'bg-rose-50 border-rose-200'
+                        : n.type === 'outbreak_alert'
+                        ? 'bg-amber-50 border-amber-200'
+                        : 'bg-emerald-50 border-emerald-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between text-xs font-bold text-stone-900">
+                      <span className="truncate max-w-[200px]">{n.title}</span>
+                      <span className="text-[10px] text-stone-500 shrink-0">{n.timestamp}</span>
+                    </div>
+                    <p className="text-xs text-stone-700 leading-snug line-clamp-2">{n.body}</p>
+                  </div>
+                ))
+              )}
             </div>
 
             <div className="pt-3 border-t border-stone-100 shrink-0">

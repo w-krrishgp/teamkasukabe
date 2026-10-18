@@ -34,17 +34,17 @@ export const EnquiryBookingModal: React.FC<EnquiryBookingModalProps> = ({
   const { language } = useLanguage();
   const isHi = language === 'hi';
 
-  if (!option) return null;
-
   const [farmerName, setFarmerName] = useState(MOCK_FARMER_PROFILE.fullName);
   const [farmerPhone, setFarmerPhone] = useState(MOCK_FARMER_PROFILE.phone);
-  const [preferredDate, setPreferredDate] = useState(
+  const [preferredDate, setPreferredDate] = useState(() =>
     new Date(Date.now() + 86400000 * 2).toISOString().split('T')[0]
   );
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submittedEnquiry, setSubmittedEnquiry] = useState<BookingEnquiry | null>(null);
   const [isCopied, setIsCopied] = useState(false);
+
+  if (!option) return null;
 
   const getActionTitle = () => {
     if (isHi) {
