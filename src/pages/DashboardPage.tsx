@@ -23,7 +23,7 @@ import {
   Warehouse,
   Volume2,
 } from 'lucide-react';
-import { dispatchNotification } from '@/services/notificationService';
+import { broadcastOutbreakAlert } from '@/services/notificationService';
 import {
   Button,
   Card,
@@ -261,21 +261,14 @@ export const DashboardPage: React.FC = () => {
 
               <button
                 type="button"
-                onClick={() => {
-                  dispatchNotification({
-                    id: `dash-alert-${Date.now()}`,
-                    title: language === 'hi' ? '🚨 निकटवर्ती पीला रतुआ चेतावनी (3.8 किमी)' : '🚨 Yellow Rust Outbreak Warning (3.8 km)',
-                    body: language === 'hi'
-                      ? 'वडू गांव में पीला रतुआ दर्ज। गेहूं HD-2967 के लिए प्रोपिकोनाज़ोल 25% EC का छिड़काव करें।'
-                      : 'Detected in Vadu village. Contagion risk for HD-2967 wheat tillers. Spray Propiconazole 25% EC.',
-                    type: 'outbreak_alert',
-                    severity: 'critical',
-                    crop: 'Wheat (HD-2967)',
-                    diseaseName: 'Yellow Rust',
+                onClick={async () => {
+                  await broadcastOutbreakAlert({
+                    diseaseName: 'Yellow Rust (Puccinia striiformis)',
+                    crop: 'Wheat HD-2967',
+                    village: 'Vadu Village, Kadi',
                     distanceKm: 3.8,
-                    actionUrl: '/disease-outbreaks',
-                    timestamp: 'Just now',
-                    read: false,
+                    severity: 'critical',
+                    alertRadiusKm: 10,
                   });
                 }}
                 className="text-[11px] font-bold text-rose-800 bg-rose-100 hover:bg-rose-200 border border-rose-300 px-2.5 py-1 rounded-xl inline-flex items-center space-x-1 shadow-xs transition-all active:scale-95"

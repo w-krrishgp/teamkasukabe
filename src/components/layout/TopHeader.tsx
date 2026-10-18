@@ -18,7 +18,7 @@ import {
   getNotificationHistory,
   AppNotification,
   requestPushPermission,
-  dispatchNotification,
+  broadcastOutbreakAlert,
 } from '@/services/notificationService';
 
 export const TopHeader: React.FC = () => {
@@ -53,21 +53,14 @@ export const TopHeader: React.FC = () => {
 
   const unreadCount = notifList.filter((n) => !n.read).length;
 
-  const handleTestAlertPopup = () => {
-    dispatchNotification({
-      id: `manual-test-${Date.now()}`,
-      title: language === 'hi' ? '🚨 लाइव टेस्ट: पीला रतुआ चेतावनी' : '🚨 LIVE TEST: Yellow Rust Proximity Warning',
-      body: language === 'hi'
-        ? 'वडू गांव (3.8 किमी दूर) में प्रकोप दर्ज। त्वरित फोलियर निरीक्षण की सलाह दी जाती है।'
-        : 'Outbreak reported 3.8 km away in Vadu. Foliar inspection & preventive spray recommended.',
-      type: 'outbreak_alert',
-      severity: 'critical',
-      crop: 'Wheat (HD-2967)',
-      diseaseName: 'Yellow Rust',
+  const handleTestAlertPopup = async () => {
+    await broadcastOutbreakAlert({
+      diseaseName: 'Yellow Rust (Puccinia striiformis)',
+      crop: 'Wheat HD-2967',
+      village: 'Vadu Village, Kadi',
       distanceKm: 3.8,
-      actionUrl: '/disease-outbreaks',
-      timestamp: 'Just now',
-      read: false,
+      severity: 'critical',
+      alertRadiusKm: 10,
     });
   };
 
@@ -384,9 +377,9 @@ export const TopHeader: React.FC = () => {
               {notifList.length === 0 ? (
                 <p className="text-xs text-stone-500 text-center py-4">No notifications</p>
               ) : (
-                notifList.map((n) => (
+                notifList.map((n, idx) => (
                   <div
-                    key={n.id}
+                    key={`${n.id}-${idx}`}
                     onClick={() => {
                       setIsNotifOpen(false);
                       if (n.actionUrl) navigate(n.actionUrl);

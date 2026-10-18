@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BellRing, X, Volume2, ArrowRight } from 'lucide-react';
-import { requestPushPermission, dispatchNotification } from '@/services/notificationService';
+import { requestPushPermission, broadcastOutbreakAlert } from '@/services/notificationService';
 import { useLanguage } from '@/context/LanguageContext';
 
 export const NotificationPermissionBanner = () => {
@@ -24,23 +24,14 @@ export const NotificationPermissionBanner = () => {
         setPermission(Notification.permission);
       }
 
-      // Immediately trigger a live proximity test alert so the user witnesses the popup & chime
-      dispatchNotification({
-        id: `welcome-alert-${Date.now()}`,
-        title: isHi
-          ? '🚨 निकटवर्ती रोग अलर्ट: पीला रतुआ (Yellow Rust)'
-          : '🚨 PROXIMITY ALERT: Yellow Rust Detected',
-        body: isHi
-          ? 'वडू गांव (3.8 किमी) में गेहूं की फसल में संक्रमण। 10 किमी सुरक्षा क्षेत्र में प्रोफेलेक्टिक स्प्रे करें।'
-          : 'Pathogen detected in Vadu village (3.8 km away). Immediate foliar protection advised for wheat fields.',
-        type: 'outbreak_alert',
-        severity: 'critical',
-        crop: 'Wheat (HD-2967)',
-        diseaseName: 'Yellow Rust',
+      // Broadcast across all connected phones and laptops
+      await broadcastOutbreakAlert({
+        diseaseName: 'Yellow Rust (Puccinia striiformis)',
+        crop: 'Wheat HD-2967',
+        village: 'Vadu Village, Kadi',
         distanceKm: 3.8,
-        actionUrl: '/disease-outbreaks',
-        timestamp: 'Just now',
-        read: false,
+        severity: 'critical',
+        alertRadiusKm: 10,
       });
 
       if (res.granted) {

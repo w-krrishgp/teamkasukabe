@@ -121,6 +121,9 @@ export function playOutbreakAlertChime() {
     if (!AudioContextClass) return;
 
     const ctx = new AudioContextClass();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
     const now = ctx.currentTime;
 
     // Tone 1: 587.33 Hz (D5)
@@ -239,7 +242,40 @@ export interface OutbreakBroadcastPayload {
   alertRadiusKm: number; // e.g. 10 km
 }
 
-// Inter-tab / cross-window broadcast channel
+export function handleIncomingOutbreak(payload: OutbreakBroadcastPayload) {
+  if (!payload) return;
+
+  // Default farmer location (Mehsana: 23.588, 72.3693)
+  const myLat = 23.588;
+  const myLon = 72.3693;
+
+  const distance = calculateHaversineDistanceKm(
+    myLat,
+    myLon,
+    payload.coordinates.latitude,
+    payload.coordinates.longitude
+  );
+
+  // ONLY notify if the farmer is within the danger radius (e.g. <= 10 km)
+  if (distance <= payload.alertRadiusKm) {
+    const notif: AppNotification = {
+      id: `incoming-${payload.id}-${Date.now()}`,
+      title: `🚨 PROXIMITY ALERT: ${payload.diseaseName} (${payload.crop})`,
+      body: `Detected in ${payload.village} (${distance.toFixed(1)} km from your farm). High contagion risk within your 10 km bio-security zone.`,
+      type: 'outbreak_alert',
+      severity: payload.severity === 'critical' ? 'critical' : 'high',
+      crop: payload.crop,
+      diseaseName: payload.diseaseName,
+      distanceKm: distance,
+      actionUrl: '/disease-outbreaks',
+      timestamp: 'Just now',
+      read: false,
+    };
+    dispatchNotification(notif);
+  }
+}
+
+// 1. Inter-tab / cross-window broadcast channel (same machine)
 const broadcastChannel =
   typeof window !== 'undefined' && 'BroadcastChannel' in window
     ? new BroadcastChannel('harvestguard_outbreak_telemetry')
@@ -247,38 +283,16 @@ const broadcastChannel =
 
 if (broadcastChannel) {
   broadcastChannel.onmessage = (event: MessageEvent<OutbreakBroadcastPayload>) => {
-    const payload = event.data;
-    if (!payload) return;
-
-    // Default farmer location (Mehsana: 23.588, 72.3693)
-    const myLat = 23.588;
-    const myLon = 72.3693;
-
-    const distance = calculateHaversineDistanceKm(
-      myLat,
-      myLon,
-      payload.coordinates.latitude,
-      payload.coordinates.longitude
-    );
-
-    // ONLY notify if the farmer is within the danger radius (e.g. <= 10 km)
-    if (distance <= payload.alertRadiusKm) {
-      const notif: AppNotification = {
-        id: `incoming-${payload.id}`,
-        title: `🚨 PROXIMITY ALERT: ${payload.diseaseName} (${payload.crop})`,
-        body: `Detected in ${payload.village} (${distance.toFixed(1)} km from your farm). High contagion risk within your 10 km bio-security zone.`,
-        type: 'outbreak_alert',
-        severity: payload.severity === 'critical' ? 'critical' : 'high',
-        crop: payload.crop,
-        diseaseName: payload.diseaseName,
-        distanceKm: distance,
-        actionUrl: '/disease-outbreaks',
-        timestamp: 'Just now',
-        read: false,
-      };
-      dispatchNotification(notif);
-    }
+    handleIncomingOutbreak(event.data);
   };
+}
+
+// 2. Real-time Cross-Device WebSocket Relay (Phone <-> Laptop <-> Tablet over local network)
+if (typeof window !== 'undefined' && import.meta.hot) {
+  import.meta.hot.on('harvestguard:outbreak_receive', (payload: OutbreakBroadcastPayload) => {
+    console.log('[HarvestGuard Network] Cross-device alert received:', payload.diseaseName);
+    handleIncomingOutbreak(payload);
+  });
 }
 
 /**
@@ -363,18 +377,25 @@ export async function broadcastOutbreakAlert(params: {
     read: false,
   };
 
-  // Broadcast to other tabs / devices on network
+  const broadcastPayload: OutbreakBroadcastPayload = {
+    id: notification.id,
+    diseaseName: params.diseaseName,
+    crop: params.crop,
+    village: params.village,
+    coordinates: coords,
+    severity: params.severity,
+    preventiveProtocol: params.preventiveProtocol,
+    alertRadiusKm: radius,
+  };
+
+  // 1. Broadcast over local WebSocket to other devices (phones, tablets, laptops)
+  if (typeof window !== 'undefined' && import.meta.hot) {
+    import.meta.hot.send('harvestguard:outbreak_broadcast', broadcastPayload);
+  }
+
+  // 2. Broadcast to other tabs on same device
   if (broadcastChannel) {
-    broadcastChannel.postMessage({
-      id: notification.id,
-      diseaseName: params.diseaseName,
-      crop: params.crop,
-      village: params.village,
-      coordinates: coords,
-      severity: params.severity,
-      preventiveProtocol: params.preventiveProtocol,
-      alertRadiusKm: radius,
-    });
+    broadcastChannel.postMessage(broadcastPayload);
   }
 
   // Dispatch on local device as well if in range
